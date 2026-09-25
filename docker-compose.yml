@@ -1,0 +1,23 @@
+services:
+  worker:
+    build: .
+    image: s1meta-worker
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - work:/work
+    stop_grace_period: 30s
+
+  # One-off: docker compose run --rm merge
+  merge:
+    build: .
+    image: s1meta-worker
+    profiles: ["merge"]
+    env_file: .env
+    working_dir: /work
+    volumes:
+      - work:/work
+    command: ["python", "-m", "s1meta.merge", "--out", "/work/s1_all.parquet", "--cache", "/work/cache", "--push"]
+
+volumes:
+  work:

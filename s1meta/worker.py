@@ -1,0 +1,147 @@
+"""Main worker loop.
+
+Work left = CSVs in the catalogue listing whose tag is not in the registry.
+Nothing else is stored, so the worker can be stopped and restarted at will.
+"""
+
+from __future__ import annotations
+
+import argparse
+import logging
+import shutil
+import signal
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+from . import __version__, csvfile, geoparquet
+from .config import Config
+from .http import make_session
+from .listing import CsvEntry, list_csvs
+from .naming import parquet_name, tag_for
+from .odata import ODataClient
+from .registry import Registry
+from .transform import build_table
+
+log = logging.getLogger("s1meta.worker")
+
+
+class Stop(BaseException):
+    pass
+
+
+def process(entry: CsvEntry, cfg: Config, session, odata: ODataClient, work: Path) -> tuple[Path, dict]:
+    """Build the GeoParquet for one CSV inside ``work``; return (path, annotations)."""
+    t0 = time.monotonic()
+    csv_path = work / Path(entry.key).name
+    csvfile.download(session, entry.url(cfg.csv_list_url), entry, csv_path, timeout=cfg.http_timeout)
+    df = csvfile.read_csv(csv_path)
+    products = odata.fetch(df["Id"].tolist())
+    table, geoms, missing = build_table(df, products)
+    out = work / parquet_name(entry.key)
+    geoparquet.write(table, geoms, out)
+    geoparquet.check(out, len(df))
+    ann = {
+        "org.opencontainers.image.title": out.name,
+        "org.opencontainers.image.source": "https://github.com/konkrad/dataspace",
+        "eu.copernicus.csv.key": entry.key,
+        "eu.copernicus.csv.md5": entry.md5,
+        "eu.copernicus.csv.last_modified": entry.last_modified,
+        "s1meta.rows": str(len(df)),
+        "s1meta.odata_found": str(len(df) - missing),
+        "s1meta.odata_missing": str(missing),
+        "s1meta.version": __version__,
+    }
+    log.info("%s: %d rows, %d not in OData, %.1fs", entry.key, len(df), missing, time.monotonic() - t0)
+    return out, ann
+
+
+def todo_list(entries: list[CsvEntry], done: set[str], order: str) -> list[CsvEntry]:
+    todo = [e for e in entries if tag_for(e.key) not in done]
+    # Sort by day, then platform, so the archive fills up chronologically.
+    todo.sort(key=lambda e: (Path(e.key).name.split("_")[1:2], e.key), reverse=(order == "desc"))
+    return todo
+
+
+def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bool = False,
+        out_dir: Path | None = None) -> int:
+    session = make_session(pool_size=max(8, cfg.odata_workers * 2))
+    odata = ODataClient(session, cfg.odata_url, cfg.odata_batch, cfg.odata_workers, cfg.odata_rps, cfg.http_timeout)
+    registry = Registry(cfg.oci_repo)
+    cfg.work_dir.mkdir(parents=True, exist_ok=True)
+
+    while True:
+        entries = list_csvs(session, cfg.csv_list_url, cfg.platforms, timeout=cfg.http_timeout)
+        if only:
+            entries = [e for e in entries if e.key == only or tag_for(e.key) == only or Path(e.key).name == only]
+            if not entries:
+                log.error("no CSV matches %r", only)
+                return 1
+        done = set() if (no_push or only) else registry.tags()
+        todo = todo_list(entries, done, cfg.order)
+        log.info("%d CSVs listed, %d already in %s, %d to do", len(entries), len(entries) - len(todo),
+                 cfg.oci_repo, len(todo))
+        if dry_run:
+            for e in todo[:20]:
+                print(e.key)
+            if len(todo) > 20:
+                print(f"... and {len(todo) - 20} more")
+            return 0
+
+        failed = 0
+        for i, entry in enumerate(todo, 1):
+            work = Path(tempfile.mkdtemp(prefix="job-", dir=cfg.work_dir))
+            try:
+                log.info("[%d/%d] %s", i, len(todo), entry.key)
+                out, ann = process(entry, cfg, session, odata, work)
+                if out_dir is not None:
+                    out_dir.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(out, out_dir / out.name)
+                    log.info("wrote %s", out_dir / out.name)
+                if not no_push:
+                    registry.push(tag_for(entry.key), out, ann)
+                    log.info("pushed %s:%s", cfg.oci_repo, tag_for(entry.key))
+            except Stop:
+                log.info("stopping; %s was not pushed and will be redone", entry.key)
+                return 0
+            except Exception:  # noqa: BLE001 - one bad file must not stop the worker
+                # Not pushed, so it is still missing from the registry and the
+                # next pass picks it up again.
+                failed += 1
+                log.exception("failed %s; will retry on the next pass", entry.key)
+            finally:
+                shutil.rmtree(work, ignore_errors=True)
+
+        if cfg.run_once or only:
+            return 1 if failed else 0
+        log.info("pass finished (%d failed); sleeping %ds before checking again", failed, cfg.poll_interval)
+        time.sleep(cfg.poll_interval)
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--dry-run", action="store_true", help="list what is left to do and exit")
+    ap.add_argument("--only", help="process a single CSV (key, file name or tag) and exit")
+    ap.add_argument("--no-push", action="store_true", help="do not push to the registry")
+    ap.add_argument("--out", type=Path, help="also copy the GeoParquet files into this directory")
+    ap.add_argument("--log-level", default=None)
+    args = ap.parse_args(argv)
+
+    import os
+    logging.basicConfig(level=(args.log_level or os.environ.get("LOG_LEVEL", "INFO")).upper(),
+                        format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+
+    def on_signal(signum, _frame):
+        raise Stop()
+
+    signal.signal(signal.SIGTERM, on_signal)
+    signal.signal(signal.SIGINT, on_signal)
+    try:
+        return run(Config.from_env(), args.dry_run, args.only, args.no_push, args.out)
+    except Stop:
+        return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
