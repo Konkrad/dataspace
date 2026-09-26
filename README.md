@@ -157,7 +157,7 @@ docker compose run --rm sentinel-1-merge
 #             --cache /work/sentinel-1/cache --push
 ```
 
-This does four things:
+This does five things:
 
 1. Pulls the newest version of every (platform, day) into
    `/work/sentinel-1/cache/S1X/YYYY/MM/`.
@@ -165,9 +165,38 @@ This does four things:
 2. Merges them with DuckDB (`union_by_name`, so attribute columns that only
    some product types have are fine).
 3. Sorts the result by `content_start`.
-4. Writes GeoParquet metadata and pushes the file as tag `all-YYYYMMDD`.
+4. Writes GeoParquet metadata.
+5. Reorders it into a [COGP](https://github.com/Kanahiro/cloud-optimized-geoparquet)
+   layout with the `cogp` CLI (vendored in the image like `oras`), so viewers
+   can progressively load it, then pushes the file as tag `all-YYYYMMDD`. A
+   COGP file is still ordinary GeoParquet, so this is transparent to
+   non-COGP-aware readers.
 
 Use `--memory-limit 4GB` on small machines.
+
+## STAC GeoParquet
+
+```sh
+docker compose run --rm sentinel-1-merge cdsemeta-stac /work/sentinel-1/sentinel-1_all.parquet \
+    --out /work/sentinel-1/sentinel-1_stac.parquet --push
+```
+
+Maps cdsemeta's raw OData attribute columns (`orbitNumber`, `orbitDirection`,
+`polarisationChannels`, `productType`, ...) into the STAC properties CDSE's
+own STAC API uses (https://stac.dataspace.copernicus.eu/), producing a
+[STAC GeoParquet](https://github.com/radiantearth/stac-geoparquet-spec) file:
+the `sar`/`sat`/`product`/`processing`/`eopf` STAC extensions, `id`/
+`datetime`/`collection`/`links`/`assets`. Each `assets.data.href` is the
+product's `s3://eodata/...` directory (cdsemeta only has the product-level S3
+path, not individual measurement files). Only mapped when the mission's
+attribute columns are actually present, so it degrades gracefully for
+missions other than Sentinel-1 — the mapping itself has only been verified
+against Sentinel-1.
+
+Like the merged file, this is run through `cogp convert` (rerun on this file
+specifically, since adding columns after a COGP conversion would leave its
+`geo.lod` metadata pointing at stale row groups) and pushed as its own tag,
+`stac-YYYYMMDD`.
 
 ## Development
 

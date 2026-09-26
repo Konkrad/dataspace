@@ -19,6 +19,7 @@ import duckdb
 import pyarrow.parquet as pq
 
 from . import __version__
+from .cogp import convert_to_cogp
 from .config import Config
 from .naming import latest_per_day, relpath_for_tag
 from .registry import Registry
@@ -109,6 +110,8 @@ def main(argv: list[str] | None = None) -> int:
     log.info("merging %d files", len(files))
     rows = merge(files, args.out, args.cache, args.memory_limit)
     log.info("wrote %s: %d rows", args.out, rows)
+    log.info("converting %s to COGP layout", args.out)
+    convert_to_cogp(args.out)
     if args.push:
         tag = f"all-{date.today():%Y%m%d}"
         registry.push(tag, args.out, {
