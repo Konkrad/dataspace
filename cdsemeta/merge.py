@@ -10,7 +10,6 @@ import argparse
 import json
 import logging
 import os
-import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
@@ -20,6 +19,7 @@ import duckdb
 import pyarrow.parquet as pq
 
 from . import __version__
+from .cogp import convert_to_cogp
 from .config import Config
 from .naming import latest_per_day, relpath_for_tag
 from .registry import Registry
@@ -80,21 +80,6 @@ def merge(files: list[Path], out: Path, tmp_dir: Path, memory_limit: str | None 
     """)
     part.replace(out)
     return pq.ParquetFile(out).metadata.num_rows
-
-
-def convert_to_cogp(path: Path, cogp_bin: str = "cogp") -> None:
-    """Reorder ``path`` in place into a COGP layout for progressive map rendering.
-
-    A COGP file is still ordinary GeoParquet 1.1, just with its row groups
-    arranged coarse-to-fine, so this replaces ``path`` rather than producing a
-    separate artifact. See https://github.com/Kanahiro/cloud-optimized-geoparquet.
-    """
-    tmp = path.with_suffix(path.suffix + ".cogp.tmp")
-    res = subprocess.run([cogp_bin, "convert", str(path), str(tmp)], capture_output=True, text=True)
-    if res.returncode != 0:
-        tmp.unlink(missing_ok=True)
-        raise RuntimeError(f"cogp convert failed ({res.returncode}): {res.stderr.strip() or res.stdout.strip()}")
-    tmp.replace(path)
 
 
 def main(argv: list[str] | None = None) -> int:
