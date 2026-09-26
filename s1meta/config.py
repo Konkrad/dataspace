@@ -23,7 +23,7 @@ class Config:
     odata_batch: int = 100
     odata_workers: int = 4
     odata_rps: float = 3.0
-    oci_repo: str = "ghcr.io/konkrad/dataspace"
+    oci_repo: str = "ghcr.io/konkrad/dataspace/sentinel-1"
     work_dir: Path = field(default_factory=lambda: Path("/tmp/s1meta"))
     poll_interval: int = 6 * 3600
     run_once: bool = False

@@ -6,13 +6,16 @@ GeoParquet files with **all** OData metadata, and stores them in an OCI
 registry (GHCR) with [ORAS](https://oras.land).
 
 ```
-CSV listing ──► CSV ids ──► OData (100 ids/request) ──► GeoParquet ──► oras push ghcr.io/…:<csv name>
+CSV listing ──► CSV ids ──► OData (100 ids/request) ──► GeoParquet ──► oras push ghcr.io/konkrad/dataspace/sentinel-1:<csv name>
 ```
 
-- One GeoParquet per CSV, with the same name:
-  `S1A_20240101_COPERNICUS_catalogue_20260901.csv` becomes tag
-  `S1A_20240101_COPERNICUS_catalogue_20260901` containing
-  `S1A_20240101_COPERNICUS_catalogue_20260901.parquet`.
+- One package per mission: `ghcr.io/konkrad/dataspace/sentinel-1`.
+- One GeoParquet per CSV, with the same name and the same folder structure as
+  the CSV archive. The CSV
+  `S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20260901.csv` becomes tag
+  `S1A_20240101_COPERNICUS_catalogue_20260901`, which contains
+  `S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20260901.parquet`.
+  `oras pull` recreates that folder tree.
 - **The registry is the state.** Each pass lists all CSVs, lists the registry
   tags, and processes whatever is missing. There is no local database, so a
   crash or restart just continues. A file is only pushed after it has been
@@ -83,15 +86,17 @@ docker compose run --rm worker python -m s1meta.worker \
     --only S1A_20240101_COPERNICUS_catalogue_20260901 --no-push --out /work/out
 
 # See what is in the registry
-oras repo tags ghcr.io/konkrad/dataspace
-oras pull ghcr.io/konkrad/dataspace:S1A_20240101_COPERNICUS_catalogue_20260901
+oras repo tags ghcr.io/konkrad/dataspace/sentinel-1
+oras pull ghcr.io/konkrad/dataspace/sentinel-1:S1A_20240101_COPERNICUS_catalogue_20260901 -o s1
+# -> s1/S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20260901.parquet
 ```
 
-Everything goes into this repository's own package, `ghcr.io/konkrad/dataspace`.
+Everything goes into this repository's registry, in the package
+`ghcr.io/konkrad/dataspace/sentinel-1`.
 Every push carries the annotation
 `org.opencontainers.image.source=https://github.com/konkrad/dataspace`, so GHCR
 links the package to the repo: it shows up under the repo's **Packages**, and
-access follows the repo. If a `dataspace` package already existed before the
+access follows the repo. If the package already existed before the
 first push and isn't linked, connect it once under Package settings →
 "Connect repository".
 
@@ -99,7 +104,7 @@ first push and isn't linked, connect it once under Package settings →
 
 | Variable | Default | |
 |---|---|---|
-| `OCI_REPO` | `ghcr.io/konkrad/dataspace` | target repository (this repo's package) |
+| `OCI_REPO` | `ghcr.io/konkrad/dataspace/sentinel-1` | target package |
 | `GHCR_USER`, `GHCR_TOKEN` | | used for `oras login` at container start |
 | `PLATFORMS` | `S1A,S1B,S1C,S1D` | |
 | `ODATA_BATCH` | `100` | ids per request (200 fails with HTTP 414) |
@@ -132,7 +137,8 @@ docker compose run --rm merge
 
 This does four things:
 
-1. Pulls the newest version of every (platform, day) into `/work/cache`.
+1. Pulls the newest version of every (platform, day) into
+   `/work/cache/S1X/YYYY/MM/`.
    Already-pulled files are skipped, so it can be rerun.
 2. Merges them with DuckDB (`union_by_name`, so attribute columns that only
    some product types have are fine).

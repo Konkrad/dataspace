@@ -19,7 +19,7 @@ from . import __version__, csvfile, geoparquet
 from .config import Config
 from .http import make_session
 from .listing import CsvEntry, list_csvs
-from .naming import parquet_name, tag_for
+from .naming import parquet_relpath, tag_for
 from .odata import ODataClient
 from .registry import Registry
 from .transform import build_table
@@ -32,18 +32,22 @@ class Stop(BaseException):
 
 
 def process(entry: CsvEntry, cfg: Config, session, odata: ODataClient, work: Path) -> tuple[Path, dict]:
-    """Build the GeoParquet for one CSV inside ``work``; return (path, annotations)."""
+    """Build the GeoParquet for one CSV at ``work/<platform>/<year>/<month>/``.
+
+    Returns (path, annotations).
+    """
     t0 = time.monotonic()
     csv_path = work / Path(entry.key).name
     csvfile.download(session, entry.url(cfg.csv_list_url), entry, csv_path, timeout=cfg.http_timeout)
     df = csvfile.read_csv(csv_path)
     products = odata.fetch(df["Id"].tolist())
     table, geoms, missing = build_table(df, products)
-    out = work / parquet_name(entry.key)
+    out = work / parquet_relpath(entry.key)
+    out.parent.mkdir(parents=True, exist_ok=True)
     geoparquet.write(table, geoms, out)
     geoparquet.check(out, len(df))
     ann = {
-        "org.opencontainers.image.title": out.name,
+        "org.opencontainers.image.title": parquet_relpath(entry.key),
         "eu.copernicus.csv.key": entry.key,
         "eu.copernicus.csv.md5": entry.md5,
         "eu.copernicus.csv.last_modified": entry.last_modified,
@@ -95,11 +99,12 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
                 log.info("[%d/%d] %s", i, len(todo), entry.key)
                 out, ann = process(entry, cfg, session, odata, work)
                 if out_dir is not None:
-                    out_dir.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(out, out_dir / out.name)
-                    log.info("wrote %s", out_dir / out.name)
+                    dest = out_dir / parquet_relpath(entry.key)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(out, dest)
+                    log.info("wrote %s", dest)
                 if not no_push:
-                    registry.push(tag_for(entry.key), out, ann)
+                    registry.push(tag_for(entry.key), out, ann, root=work)
                     log.info("pushed %s:%s", cfg.oci_repo, tag_for(entry.key))
             except Stop:
                 log.info("stopping; %s was not pushed and will be redone", entry.key)
