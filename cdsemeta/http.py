@@ -26,5 +26,5 @@ def make_session(pool_size: int = 8) -> requests.Session:
     s = requests.Session()
     s.mount("https://", adapter)
     s.mount("http://", adapter)
-    s.headers["User-Agent"] = f"s1meta/{__version__}"
+    s.headers["User-Agent"] = f"cdsemeta/{__version__}"
     return s

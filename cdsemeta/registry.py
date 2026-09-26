@@ -14,7 +14,7 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-ARTIFACT_TYPE = "application/vnd.s1meta.geoparquet.v1"
+ARTIFACT_TYPE = "application/vnd.cdsemeta.geoparquet.v1"
 PARQUET_MEDIA_TYPE = "application/vnd.apache.parquet"
 # GHCR links a package to the repository named in this annotation.
 SOURCE_REPO_URL = "https://github.com/konkrad/dataspace"
@@ -44,7 +44,8 @@ class Registry:
             out = self._run(["repo", "tags", self.repo])
         except RegistryError as e:
             # A repository that has never been pushed to does not exist yet.
-            if "not found" in str(e).lower() or "name_unknown" in str(e).lower():
+            msg = str(e).lower()
+            if any(m in msg for m in ("not found", "name unknown", "name_unknown")):
                 return set()
             raise
         return {line.strip() for line in out.splitlines() if line.strip()}

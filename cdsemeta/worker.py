@@ -24,7 +24,7 @@ from .odata import ODataClient
 from .registry import Registry
 from .transform import build_table
 
-log = logging.getLogger("s1meta.worker")
+log = logging.getLogger("cdsemeta.worker")
 
 
 class Stop(BaseException):
@@ -51,10 +51,11 @@ def process(entry: CsvEntry, cfg: Config, session, odata: ODataClient, work: Pat
         "eu.copernicus.csv.key": entry.key,
         "eu.copernicus.csv.md5": entry.md5,
         "eu.copernicus.csv.last_modified": entry.last_modified,
-        "s1meta.rows": str(len(df)),
-        "s1meta.odata_found": str(len(df) - missing),
-        "s1meta.odata_missing": str(missing),
-        "s1meta.version": __version__,
+        "cdsemeta.rows": str(len(df)),
+        "cdsemeta.odata_found": str(len(df) - missing),
+        "cdsemeta.odata_missing": str(missing),
+        "cdsemeta.mission": cfg.mission,
+        "cdsemeta.version": __version__,
     }
     log.info("%s: %d rows, %d not in OData, %.1fs", entry.key, len(df), missing, time.monotonic() - t0)
     return out, ann
@@ -73,6 +74,7 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
     odata = ODataClient(session, cfg.odata_url, cfg.odata_batch, cfg.odata_workers, cfg.odata_rps, cfg.http_timeout)
     registry = Registry(cfg.oci_repo)
     cfg.work_dir.mkdir(parents=True, exist_ok=True)
+    log.info("mission %s (%s) -> %s", cfg.mission, ",".join(cfg.platforms), cfg.oci_repo)
 
     while True:
         entries = list_csvs(session, cfg.csv_list_url, cfg.platforms, timeout=cfg.http_timeout)

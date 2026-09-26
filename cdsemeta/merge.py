@@ -23,7 +23,7 @@ from .config import Config
 from .naming import latest_per_day, relpath_for_tag
 from .registry import Registry
 
-log = logging.getLogger("s1meta.merge")
+log = logging.getLogger("cdsemeta.merge")
 
 
 def pull_all(registry: Registry, tags: list[str], cache: Path, workers: int = 8) -> list[Path]:
@@ -57,7 +57,7 @@ def combined_geo(files: list[Path]) -> dict:
         col["bbox"] = bbox
     else:
         col.pop("bbox", None)
-    geo["creator"] = {"library": "s1meta", "version": __version__}
+    geo["creator"] = {"library": "cdsemeta", "version": __version__}
     return geo
 
 
@@ -83,7 +83,7 @@ def merge(files: list[Path], out: Path, tmp_dir: Path, memory_limit: str | None 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", type=Path, default=Path("s1_all.parquet"))
+    ap.add_argument("--out", type=Path, default=None, help="default: <mission>_all.parquet")
     ap.add_argument("--cache", type=Path, default=Path("cache"), help="where pulled artifacts are kept")
     ap.add_argument("--no-pull", action="store_true", help="only use files already in --cache")
     ap.add_argument("--push", action="store_true", help="push the result as tag all-YYYYMMDD")
@@ -93,6 +93,7 @@ def main(argv: list[str] | None = None) -> int:
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
     cfg = Config.from_env()
+    args.out = args.out or Path(f"{cfg.mission}_all.parquet")
     registry = Registry(cfg.oci_repo)
     args.cache.mkdir(parents=True, exist_ok=True)
     if args.no_pull:
@@ -112,9 +113,10 @@ def main(argv: list[str] | None = None) -> int:
         tag = f"all-{date.today():%Y%m%d}"
         registry.push(tag, args.out, {
             "org.opencontainers.image.title": args.out.name,
-            "s1meta.rows": str(rows),
-            "s1meta.files": str(len(files)),
-            "s1meta.version": __version__,
+            "cdsemeta.rows": str(rows),
+            "cdsemeta.files": str(len(files)),
+            "cdsemeta.mission": cfg.mission,
+            "cdsemeta.version": __version__,
         })
         log.info("pushed %s:%s", cfg.oci_repo, tag)
     return 0

@@ -46,7 +46,7 @@ def add_geometry(table: pa.Table, geoms: Sequence[shapely.Geometry | None]) -> t
         "primary_column": "geometry",
         # No "crs" key means OGC:CRS84 (lon/lat WGS84), which is what CDSE uses.
         "columns": {"geometry": col_meta},
-        "creator": {"library": "s1meta", "version": __version__},
+        "creator": {"library": "cdsemeta", "version": __version__},
     }
     return table, geo
 

@@ -1,23 +1,38 @@
-services:
-  worker:
-    build: .
-    image: s1meta-worker
-    restart: unless-stopped
-    env_file: .env
-    volumes:
-      - work:/work
-    stop_grace_period: 30s
+# One worker container per mission. They share .env (registry login, OData
+# settings); only MISSION differs. Each mission goes to its own package,
+# ${OCI_BASE}/<mission>, e.g. ghcr.io/konkrad/dataspace/sentinel-1.
 
-  # One-off: docker compose run --rm merge
-  merge:
-    build: .
-    image: s1meta-worker
+x-worker: &worker
+  build: .
+  image: cdsemeta-worker
+  restart: unless-stopped
+  env_file: .env
+  volumes:
+    - work:/work
+  stop_grace_period: 30s
+
+services:
+  sentinel-1:
+    <<: *worker
+    environment:
+      MISSION: sentinel-1
+
+  # To add a mission later, copy the block above and change MISSION:
+  # sentinel-2:
+  #   <<: *worker
+  #   environment:
+  #     MISSION: sentinel-2
+
+  # One-off: docker compose run --rm sentinel-1-merge
+  sentinel-1-merge:
+    <<: *worker
+    restart: "no"
     profiles: ["merge"]
-    env_file: .env
+    environment:
+      MISSION: sentinel-1
     working_dir: /work
-    volumes:
-      - work:/work
-    command: ["python", "-m", "s1meta.merge", "--out", "/work/s1_all.parquet", "--cache", "/work/cache", "--push"]
+    command: ["python", "-m", "cdsemeta.merge", "--out", "/work/sentinel-1/sentinel-1_all.parquet",
+              "--cache", "/work/sentinel-1/cache", "--push"]
 
 volumes:
   work:
