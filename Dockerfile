@@ -16,11 +16,11 @@ RUN set -eux; \
 
 WORKDIR /app
 COPY pyproject.toml ./
-COPY s1meta ./s1meta
+COPY cdsemeta ./cdsemeta
 RUN pip install --no-cache-dir . && useradd -m -u 1000 worker && mkdir -p /work && chown worker /work
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 USER worker
 ENV WORK_DIR=/work PYTHONUNBUFFERED=1
 ENTRYPOINT ["tini", "--", "docker-entrypoint.sh"]
-CMD ["python", "-m", "s1meta.worker"]
+CMD ["python", "-m", "cdsemeta.worker"]

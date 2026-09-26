@@ -1,6 +1,6 @@
 """Mapping between catalogue CSV keys and OCI tags.
 
-CSV keys look like ``S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20260901.csv``.
+CSV keys (same layout for every Sentinel mission) look like ``S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20260901.csv``.
 The tag is the file name without ``.csv``, which is already a valid OCI tag.
 The trailing date is the catalogue generation date: recent days get
 regenerated, which produces a new file name and therefore a new tag.
@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from pathlib import PurePosixPath
 
 TAG_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9._-]{0,127}$")
-NAME_RE = re.compile(r"^(?P<platform>S1[A-Z])_(?P<day>\d{8})_COPERNICUS_catalogue_(?P<generated>\d{8})$")
+NAME_RE = re.compile(r"^(?P<platform>S\d[A-Z0-9]*)_(?P<day>\d{8})_COPERNICUS_catalogue_(?P<generated>\d{8})$")
 
 
 @dataclass(frozen=True, order=True)

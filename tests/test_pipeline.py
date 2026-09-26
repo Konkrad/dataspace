@@ -6,9 +6,9 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from s1meta import csvfile, geoparquet
-from s1meta.naming import latest_per_day, parquet_name, parquet_relpath, parse_tag, relpath_for_tag, tag_for
-from s1meta.transform import build_table, parse_ts
+from cdsemeta import csvfile, geoparquet
+from cdsemeta.naming import latest_per_day, parquet_name, parquet_relpath, parse_tag, relpath_for_tag, tag_for
+from cdsemeta.transform import build_table, parse_ts
 
 DATA = Path(__file__).parent / "data"
 CSV = DATA / "S1A_20240101_COPERNICUS_catalogue_20260901.csv"
@@ -89,7 +89,7 @@ def test_build_and_write(tmp_path):
 
 
 def test_merge(tmp_path):
-    from s1meta.merge import merge
+    from cdsemeta.merge import merge
 
     df = csvfile.read_csv(CSV)
     table, geoms, _ = build_table(df, products())
@@ -104,7 +104,7 @@ def test_merge(tmp_path):
 
 
 def test_push_links_package_to_repo(tmp_path, monkeypatch):
-    from s1meta.registry import SOURCE_ANNOTATION, SOURCE_REPO_URL, Registry
+    from cdsemeta.registry import SOURCE_ANNOTATION, SOURCE_REPO_URL, Registry
 
     calls = []
     reg = Registry("ghcr.io/konkrad/dataspace/sentinel-1", extra_args=[])
@@ -112,9 +112,56 @@ def test_push_links_package_to_repo(tmp_path, monkeypatch):
     f = tmp_path / "S1A" / "2024" / "01" / "x.parquet"
     f.parent.mkdir(parents=True)
     f.write_bytes(b"x")
-    reg.push("x", f, {"s1meta.rows": 1}, root=tmp_path)
+    reg.push("x", f, {"cdsemeta.rows": 1}, root=tmp_path)
     ann = json.loads((tmp_path / "x.parquet.annotations.json").read_text())["$manifest"]
     assert ann[SOURCE_ANNOTATION] == SOURCE_REPO_URL
-    assert ann["s1meta.rows"] == "1"
+    assert ann["cdsemeta.rows"] == "1"
     assert calls[0][1] == "ghcr.io/konkrad/dataspace/sentinel-1:x"
     assert "S1A/2024/01/x.parquet:application/vnd.apache.parquet" in calls[0]
+
+
+@pytest.mark.parametrize("key", [
+    "S2B/2023/07/S2B_20230715_COPERNICUS_catalogue_20260901.csv",
+    "S5P/2024/01/S5P_20240101_COPERNICUS_catalogue_20260901.csv",
+])
+def test_naming_other_missions(key):
+    tag = tag_for(key)
+    assert parse_tag(tag).platform == key.split("/")[0]
+    assert relpath_for_tag(tag) == parquet_relpath(key)
+
+
+def test_config_missions(monkeypatch):
+    from cdsemeta.config import Config
+
+    for var in ("MISSION", "OCI_BASE", "OCI_REPO", "PLATFORMS"):
+        monkeypatch.delenv(var, raising=False)
+    cfg = Config.from_env()
+    assert cfg.mission == "sentinel-1"
+    assert cfg.platforms == ("S1A", "S1B", "S1C", "S1D")
+    assert cfg.oci_repo == "ghcr.io/konkrad/dataspace/sentinel-1"
+
+    monkeypatch.setenv("MISSION", "sentinel-2")
+    cfg = Config.from_env()
+    assert cfg.platforms == ("S2A", "S2B", "S2C")
+    assert cfg.oci_repo == "ghcr.io/konkrad/dataspace/sentinel-2"
+
+    monkeypatch.setenv("PLATFORMS", "S2C")
+    monkeypatch.setenv("OCI_REPO", "localhost:5000/x")
+    cfg = Config.from_env()
+    assert cfg.platforms == ("S2C",) and cfg.oci_repo == "localhost:5000/x"
+
+    monkeypatch.setenv("MISSION", "landsat-9")
+    with pytest.raises(ValueError, match="sentinel-1"):
+        Config.from_env()
+
+
+def test_tags_of_new_package_is_empty(monkeypatch):
+    from cdsemeta.registry import Registry, RegistryError
+
+    reg = Registry("r", extra_args=[])
+
+    def fail(args, cwd=None):
+        raise RegistryError("repo tags failed (1): Error response from registry: name unknown: repository name not known")
+
+    monkeypatch.setattr(reg, "_run", fail)
+    assert reg.tags() == set()
