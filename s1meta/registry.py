@@ -16,6 +16,9 @@ log = logging.getLogger(__name__)
 
 ARTIFACT_TYPE = "application/vnd.s1meta.geoparquet.v1"
 PARQUET_MEDIA_TYPE = "application/vnd.apache.parquet"
+# GHCR links a package to the repository named in this annotation.
+SOURCE_REPO_URL = "https://github.com/konkrad/dataspace"
+SOURCE_ANNOTATION = "org.opencontainers.image.source"
 
 
 class RegistryError(RuntimeError):
@@ -52,7 +55,8 @@ class Registry:
         ``oras push`` uploads blobs first and the manifest last, so a tag only
         ever appears once the whole artifact is in the registry.
         """
-        manifest_ann = {"$manifest": {k: str(v) for k, v in annotations.items()}}
+        ann = {SOURCE_ANNOTATION: SOURCE_REPO_URL, **annotations}
+        manifest_ann = {"$manifest": {k: str(v) for k, v in ann.items()}}
         ann_file = file.parent / f"{file.name}.annotations.json"
         ann_file.write_text(json.dumps(manifest_ann))
         self._run([

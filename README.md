@@ -83,18 +83,23 @@ docker compose run --rm worker python -m s1meta.worker \
     --only S1A_20240101_COPERNICUS_catalogue_20260901 --no-push --out /work/out
 
 # See what is in the registry
-oras repo tags ghcr.io/konkrad/s1-metadata
-oras pull ghcr.io/konkrad/s1-metadata:S1A_20240101_COPERNICUS_catalogue_20260901
+oras repo tags ghcr.io/konkrad/dataspace
+oras pull ghcr.io/konkrad/dataspace:S1A_20240101_COPERNICUS_catalogue_20260901
 ```
 
-GHCR packages are private by default. You can make the package public under
-GitHub → Packages → s1-metadata → Package settings.
+Everything goes into this repository's own package, `ghcr.io/konkrad/dataspace`.
+Every push carries the annotation
+`org.opencontainers.image.source=https://github.com/konkrad/dataspace`, so GHCR
+links the package to the repo: it shows up under the repo's **Packages**, and
+access follows the repo. If a `dataspace` package already existed before the
+first push and isn't linked, connect it once under Package settings →
+"Connect repository".
 
 ### Settings (`.env`)
 
 | Variable | Default | |
 |---|---|---|
-| `OCI_REPO` | `ghcr.io/konkrad/s1-metadata` | target repository |
+| `OCI_REPO` | `ghcr.io/konkrad/dataspace` | target repository (this repo's package) |
 | `GHCR_USER`, `GHCR_TOKEN` | | used for `oras login` at container start |
 | `PLATFORMS` | `S1A,S1B,S1C,S1D` | |
 | `ODATA_BATCH` | `100` | ids per request (200 fails with HTTP 414) |

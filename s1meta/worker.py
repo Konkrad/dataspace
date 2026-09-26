@@ -44,7 +44,6 @@ def process(entry: CsvEntry, cfg: Config, session, odata: ODataClient, work: Pat
     geoparquet.check(out, len(df))
     ann = {
         "org.opencontainers.image.title": out.name,
-        "org.opencontainers.image.source": "https://github.com/konkrad/dataspace",
         "eu.copernicus.csv.key": entry.key,
         "eu.copernicus.csv.md5": entry.md5,
         "eu.copernicus.csv.last_modified": entry.last_modified,

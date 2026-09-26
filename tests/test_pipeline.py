@@ -99,3 +99,18 @@ def test_merge(tmp_path):
     assert merge([a, b], out, tmp_path) == 6
     gdf = gpd.read_parquet(out)
     assert len(gdf) == 6 and "orbitNumber" in gdf.columns
+
+
+def test_push_links_package_to_repo(tmp_path, monkeypatch):
+    from s1meta.registry import SOURCE_ANNOTATION, SOURCE_REPO_URL, Registry
+
+    calls = []
+    reg = Registry("ghcr.io/konkrad/dataspace", extra_args=[])
+    monkeypatch.setattr(reg, "_run", lambda args, cwd=None: calls.append(args) or "")
+    f = tmp_path / "x.parquet"
+    f.write_bytes(b"x")
+    reg.push("x", f, {"s1meta.rows": 1})
+    ann = json.loads((tmp_path / "x.parquet.annotations.json").read_text())["$manifest"]
+    assert ann[SOURCE_ANNOTATION] == SOURCE_REPO_URL
+    assert ann["s1meta.rows"] == "1"
+    assert calls[0][1] == "ghcr.io/konkrad/dataspace:x"
