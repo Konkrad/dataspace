@@ -103,6 +103,39 @@ def test_merge(tmp_path):
     assert len(gdf) == 6 and "orbitNumber" in gdf.columns
 
 
+def test_build_stac_table(tmp_path):
+    from cdsemeta.merge import merge
+    from cdsemeta.stac import build_stac_table, write
+
+    df = csvfile.read_csv(CSV)
+    table, geoms, _ = build_table(df, products())
+    a = geoparquet.write(table, geoms, tmp_path / "a.parquet")
+    out = tmp_path / "all.parquet"
+    merge([a], out, tmp_path)
+    src = pq.read_table(out)
+
+    stac_table = build_stac_table(src, "sentinel-1")
+    assert stac_table.num_rows == src.num_rows
+    ext = stac_table.column("stac_extensions")[0].as_py()
+    assert "https://stac-extensions.github.io/sar/v1.3.0/schema.json" in ext
+
+    write(stac_table, src.schema.metadata[b"geo"], "sentinel-1", tmp_path / "stac.parquet")
+    gdf = gpd.read_parquet(tmp_path / "stac.parquet")
+    assert not gdf["id"].str.endswith(".SAFE").any()
+
+    found = gdf[gdf["product:type"].notna()].iloc[0]
+    assert found["platform"] == "sentinel-1a"
+    assert list(found["sar:polarizations"]) == ["HH", "HV"]
+    assert found["sat:platform_international_designator"] == "2014-016A"
+    assert found["product:timeliness_category"] in ("NRT-3h", "Fast-24h")
+    assert found["processing:level"] == "L1"
+    assert found["assets"]["data"]["href"].startswith("s3://eodata/")
+
+    missing = gdf[gdf["product:type"].isna()].iloc[0]
+    assert "CARD-COH12" in missing["id"]
+    assert missing["assets"]["data"]["href"].startswith("s3://eodata/")
+
+
 def test_push_links_package_to_repo(tmp_path, monkeypatch):
     from cdsemeta.registry import SOURCE_ANNOTATION, SOURCE_REPO_URL, Registry
 
