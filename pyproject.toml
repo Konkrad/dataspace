@@ -23,6 +23,7 @@ test = ["pytest>=8", "geopandas>=1.0", "pyproj>=3.6"]
 [project.scripts]
 cdsemeta-worker = "cdsemeta.worker:main"
 cdsemeta-merge = "cdsemeta.merge:main"
+cdsemeta-stac = "cdsemeta.stac:main"
 
 [tool.setuptools]
 packages = ["cdsemeta"]

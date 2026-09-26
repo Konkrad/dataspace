@@ -126,6 +126,20 @@ def _dumps(v: Any) -> str | None:
     return None if v is None else json.dumps(v, separators=(",", ":"), ensure_ascii=False)
 
 
+def s3_uri(path: Any) -> str | None:
+    """Normalize an S3Path to a full ``s3://`` URI.
+
+    OData's ``S3Path`` omits the scheme (``/eodata/...``); the CSV's
+    ``S3Path`` already includes it (``s3://eodata/...``). Both end up in the
+    same column, so callers should not have to special-case either source.
+    """
+    if not path:
+        return None
+    if path.startswith("s3://"):
+        return path
+    return "s3:/" + path if path.startswith("/") else "s3://" + path
+
+
 def _attr_value(a: dict, typ: pa.DataType) -> Any:
     v = a.get("Value")
     if v is None:
@@ -159,7 +173,7 @@ def from_odata(product: dict, csv_row: dict) -> tuple[dict, dict, shapely.Geomet
         "modification_date": parse_ts(product.get("ModificationDate")),
         "eviction_date": parse_ts(product.get("EvictionDate")),
         "online": product.get("Online"),
-        "s3_path": product.get("S3Path"),
+        "s3_path": s3_uri(product.get("S3Path")),
         "checksum_md5": _checksum(checksums, "MD5"),
         "checksum_blake3": _checksum(checksums, "BLAKE3"),
         "quicklook_url": quicklook,
@@ -188,7 +202,7 @@ def from_csv_only(csv_row: dict) -> tuple[dict, dict, shapely.Geometry | None]:
         "content_length": _int_or_none(_csv_get(csv_row, "ContentLength")),
         "ingestion_date": parse_ts(_csv_get(csv_row, "IngestionDate")),
         "modification_date": parse_ts(_csv_get(csv_row, "ModificationDate")),
-        "s3_path": _csv_get(csv_row, "S3Path"),
+        "s3_path": s3_uri(_csv_get(csv_row, "S3Path")),
         "checksum_md5": value if algo == "MD5" else None,
         "checksum_blake3": value if algo == "BLAKE3" else None,
     }
