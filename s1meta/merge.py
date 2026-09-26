@@ -20,7 +20,7 @@ import pyarrow.parquet as pq
 
 from . import __version__
 from .config import Config
-from .naming import latest_per_day
+from .naming import latest_per_day, relpath_for_tag
 from .registry import Registry
 
 log = logging.getLogger("s1meta.merge")
@@ -28,7 +28,7 @@ log = logging.getLogger("s1meta.merge")
 
 def pull_all(registry: Registry, tags: list[str], cache: Path, workers: int = 8) -> list[Path]:
     def one(tag: str) -> Path:
-        f = cache / f"{tag}.parquet"
+        f = cache / relpath_for_tag(tag)
         if not f.exists():
             registry.pull(tag, cache)
         return f
@@ -96,12 +96,12 @@ def main(argv: list[str] | None = None) -> int:
     registry = Registry(cfg.oci_repo)
     args.cache.mkdir(parents=True, exist_ok=True)
     if args.no_pull:
-        tags = latest_per_day([p.stem for p in args.cache.glob("*.parquet")])
+        tags = latest_per_day([p.stem for p in args.cache.rglob("*.parquet")])
     else:
         tags = latest_per_day(sorted(registry.tags()))
         log.info("pulling %d artifacts into %s", len(tags), args.cache)
         pull_all(registry, tags, args.cache)
-    files = [args.cache / f"{t}.parquet" for t in tags]
+    files = [args.cache / relpath_for_tag(t) for t in tags]
     if not files:
         log.error("nothing to merge")
         return 1

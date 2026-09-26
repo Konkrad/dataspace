@@ -39,11 +39,27 @@ def parquet_name(key: str) -> str:
     return stem(key) + ".parquet"
 
 
+def parquet_relpath(key: str) -> str:
+    """Path of the GeoParquet inside the artifact; mirrors the CSV archive.
+
+    ``S1A/2024/01/S1A_20240101_…csv`` -> ``S1A/2024/01/S1A_20240101_….parquet``
+    """
+    return str(PurePosixPath(key).with_name(parquet_name(key)))
+
+
 def parse_tag(tag: str) -> TagInfo | None:
     m = NAME_RE.match(tag)
     if not m:
         return None
     return TagInfo(m["platform"], m["day"], m["generated"])
+
+
+def relpath_for_tag(tag: str) -> str | None:
+    """Inverse of ``tag_for`` + ``parquet_relpath`` for catalogue tags."""
+    info = parse_tag(tag)
+    if info is None:
+        return None
+    return f"{info.platform}/{info.day[:4]}/{info.day[4:6]}/{tag}.parquet"
 
 
 def latest_per_day(tags: list[str]) -> list[str]:

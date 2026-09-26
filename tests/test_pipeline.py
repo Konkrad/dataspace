@@ -7,7 +7,7 @@ import pyarrow.parquet as pq
 import pytest
 
 from s1meta import csvfile, geoparquet
-from s1meta.naming import latest_per_day, parquet_name, parse_tag, tag_for
+from s1meta.naming import latest_per_day, parquet_name, parquet_relpath, parse_tag, relpath_for_tag, tag_for
 from s1meta.transform import build_table, parse_ts
 
 DATA = Path(__file__).parent / "data"
@@ -22,6 +22,8 @@ def test_naming():
     key = "S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20260901.csv"
     assert tag_for(key) == "S1A_20240101_COPERNICUS_catalogue_20260901"
     assert parquet_name(key) == "S1A_20240101_COPERNICUS_catalogue_20260901.parquet"
+    assert parquet_relpath(key) == "S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20260901.parquet"
+    assert relpath_for_tag(tag_for(key)) == parquet_relpath(key)
     info = parse_tag(tag_for(key))
     assert (info.platform, info.day, info.generated) == ("S1A", "20240101", "20260901")
     assert parse_tag("all-20260925") is None
@@ -105,12 +107,14 @@ def test_push_links_package_to_repo(tmp_path, monkeypatch):
     from s1meta.registry import SOURCE_ANNOTATION, SOURCE_REPO_URL, Registry
 
     calls = []
-    reg = Registry("ghcr.io/konkrad/dataspace", extra_args=[])
+    reg = Registry("ghcr.io/konkrad/dataspace/sentinel-1", extra_args=[])
     monkeypatch.setattr(reg, "_run", lambda args, cwd=None: calls.append(args) or "")
-    f = tmp_path / "x.parquet"
+    f = tmp_path / "S1A" / "2024" / "01" / "x.parquet"
+    f.parent.mkdir(parents=True)
     f.write_bytes(b"x")
-    reg.push("x", f, {"s1meta.rows": 1})
+    reg.push("x", f, {"s1meta.rows": 1}, root=tmp_path)
     ann = json.loads((tmp_path / "x.parquet.annotations.json").read_text())["$manifest"]
     assert ann[SOURCE_ANNOTATION] == SOURCE_REPO_URL
     assert ann["s1meta.rows"] == "1"
-    assert calls[0][1] == "ghcr.io/konkrad/dataspace:x"
+    assert calls[0][1] == "ghcr.io/konkrad/dataspace/sentinel-1:x"
+    assert "S1A/2024/01/x.parquet:application/vnd.apache.parquet" in calls[0]
