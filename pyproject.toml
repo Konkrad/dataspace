@@ -9,6 +9,7 @@ description = "Sentinel-1 CDSE catalogue CSVs -> OData metadata -> GeoParquet ->
 requires-python = ">=3.11"
 dependencies = [
     "requests>=2.31",
+    "requests[socks]",
     "pandas>=2.2",
     "pyarrow>=15",
     "shapely>=2.0",
