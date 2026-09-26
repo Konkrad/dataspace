@@ -6,3 +6,7 @@ __pycache__/
 cache/
 *.parquet
 !tests/data/*.parquet
+
+# Kamal deploy config with real host/secret names (kamal-template.yml stays tracked)
+config/deploy.yml
+.kamal/

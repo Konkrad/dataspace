@@ -1,0 +1,75 @@
+# Kamal Deployment Template for cdsemeta
+#
+# This is a custom template for deploying the cdsemeta metadata worker using
+# Kamal. cdsemeta is a background worker (no HTTP port, no health route), so
+# there is no `proxy:` section here — unlike a typical Kamal web app.
+#
+# To use this template:
+# 1. Copy this file to config/deploy.yml
+# 2. Fill in all <PLACEHOLDER> values
+# 3. Ensure .kamal/secrets contains all required secret values
+# 4. Run: kamal setup (first time only)
+# 5. Run: kamal deploy
+
+# Name of your service (used for container naming)
+service: <SERVICE_NAME>
+
+# Docker image to deploy.
+# Built locally on the server (see `registry:` below), so this can be any
+# local-only name — it is never pushed to an external registry.
+image: <IMAGE_NAME>
+
+# Servers to deploy to. One role per mission; to deploy an additional
+# mission later, copy this role, rename it, and set a different MISSION
+# below (see docker-compose.yml for the list of supported missions).
+# Kamal defaults to a primary role named "web"; override it since this is a
+# worker-only deploy with no web role.
+primary_role: worker
+
+# Kamal starts kamal-proxy for the primary role by default, which then waits
+# for a health check that a background worker (no HTTP port) can never pass.
+# `proxy: false` disables that for this role.
+servers:
+  worker:
+    hosts:
+      - <SERVER_ALIAS>  # SSH alias defined in ~/.ssh/config
+    proxy: false
+
+# Local-registry-proxy trick: Kamal still wants a registry to push/pull from,
+# but pointing it at localhost:5555 makes it build and store the image
+# locally on the server instead of using an external registry.
+registry:
+  server: localhost:5555
+
+# Builder configuration — match the target server's architecture.
+builder:
+  arch: amd64
+
+# Persistent volume, mirrors the `work:` volume in docker-compose.yml.
+volumes:
+  - "<VOLUME_NAME>:/work"
+
+# Environment variables
+env:
+  clear:
+    MISSION: <MISSION>  # e.g. sentinel-1
+    OCI_BASE: <OCI_BASE>  # e.g. ghcr.io/<org>/dataspace
+    ODATA_BATCH: "100"
+    ODATA_WORKERS: "4"
+    ODATA_RPS: "3"
+    ORDER: asc
+    POLL_INTERVAL: "21600"
+    RUN_ONCE: "0"
+    LOG_LEVEL: INFO
+    GHCR_USER: <GHCR_USER>
+    # If your server is IPv6-only (ghcr.io and the CDSE hosts are IPv4-only),
+    # route through a SOCKS5/HTTP proxy reachable from the container here.
+    # Omit these two lines if your server has normal IPv4 egress.
+    # HTTPS_PROXY: socks5h://<proxy-host>:<proxy-port>
+    # HTTP_PROXY: socks5h://<proxy-host>:<proxy-port>
+  secret:
+    - GHCR_TOKEN  # Classic PAT with write:packages, set in .kamal/secrets
+
+# Kamal aliases for common operations
+aliases:
+  logs: app logs -f
