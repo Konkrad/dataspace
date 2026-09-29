@@ -153,7 +153,21 @@ def _add_sar(t: pa.Table, cols: dict, extensions: set) -> None:
     cols["sar:frequency_band"] = pc.if_else(has_mode, pa.scalar("C"), pa.scalar(None, type=pa.string()))
     cols["sar:center_frequency"] = pc.if_else(has_mode, pa.scalar(5.405), pa.scalar(None, type=pa.float64()))
     cols["sar:observation_direction"] = pc.if_else(has_mode, pa.scalar("right"), pa.scalar(None, type=pa.string()))
+    if "swathIdentifier" in t.column_names:
+        # swathIdentifier means different things per product type: for GRD
+        # it's just the mode name again ("IW", same as operationalMode); for
+        # real SLC/OCN products it's a space-separated list of actual
+        # sub-swath beam IDs ("IW1 IW2 IW3"), confirmed against a live IW SLC
+        # product. That's CDSE's sar:beam_ids. Harmless single-element list
+        # for GRD, just redundant with sar:instrument_mode there.
+        cols["sar:beam_ids"] = pc.split_pattern(t["swathIdentifier"], " ")
     extensions.add("sar")
+    # Not mapped, and not guessed at: sar:resolution_azimuth/range and
+    # sar:pixel_spacing_azimuth/range are fixed per (mode, product type)
+    # technical constants -- not present in any OData attribute checked
+    # (fixture or live), and getting them right needs a verified lookup
+    # table from ESA specs we don't have yet. Same for view:azimuth/
+    # view:incidence_angle (per-scene viewing geometry, not in OData at all).
 
 
 def _add_sat(t: pa.Table, cols: dict, extensions: set) -> None:
@@ -203,6 +217,9 @@ def _add_processing(t: pa.Table, cols: dict, extensions: set) -> None:
     if "processingCenter" in t.column_names:
         cols["processing:facility"] = t["processingCenter"]
         have = True
+    if "processorVersion" in t.column_names:
+        cols["processing:version"] = t["processorVersion"]
+        have = True
     if "processorName" in t.column_names and "processorVersion" in t.column_names:
         # A map, not a struct: processorName (the map key) varies per row, and
         # Arrow structs need a fixed field set. Keys vary per row, so this is
@@ -219,10 +236,22 @@ def _add_processing(t: pa.Table, cols: dict, extensions: set) -> None:
 
 
 def _add_eopf(t: pa.Table, cols: dict, extensions: set) -> None:
-    if "datatakeID" not in t.column_names:
-        return
-    cols["eopf:datatake_id"] = pc.cast(t["datatakeID"], pa.string())
-    extensions.add("eopf")
+    have = False
+    if "datatakeID" in t.column_names:
+        cols["eopf:datatake_id"] = pc.cast(t["datatakeID"], pa.string())
+        have = True
+    if "instrumentConfigurationID" in t.column_names:
+        cols["eopf:instrument_configuration_id"] = pc.cast(t["instrumentConfigurationID"], pa.string())
+        have = True
+    if have:
+        extensions.add("eopf")
+    # Not mapped: sat:anx_datetime (ascending node crossing time) would need
+    # deriving from content_start - startTimeFromAscendingNode, and that
+    # attribute's units (ms, inferred from one fixture where the start/end
+    # difference matched the acquisition duration exactly) couldn't be
+    # re-confirmed against a second live sample -- neither real product
+    # checked happened to include it. Left out rather than shipped on one
+    # unconfirmed data point.
 
 
 def _assets(t: pa.Table) -> pa.Array:
@@ -248,7 +277,15 @@ def _assets(t: pa.Table) -> pa.Array:
 
 
 def build_stac_table(table: pa.Table, mission: str) -> pa.Table:
-    """Turn a merged cdsemeta GeoParquet table into a STAC GeoParquet table."""
+    """Turn a merged cdsemeta GeoParquet table into a STAC GeoParquet table.
+
+    Rows with ``odata_found = False`` (products the CSV lists but OData never
+    returned, ~1-4% of the catalogue) are dropped: they carry almost no
+    STAC-mappable properties, just id/geometry/dates/checksum from the CSV.
+    The plain merged/registry data is unaffected -- this filter is local to
+    the STAC output.
+    """
+    table = table.filter(table["odata_found"])
     n = table.num_rows
     extensions: set[str] = set()
     cols: dict = {}
@@ -309,33 +346,64 @@ def write(table: pa.Table, geo_meta: bytes, mission: str, path: Path) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("input", type=Path, help="merged GeoParquet, e.g. sentinel-1_all.parquet")
-    ap.add_argument("--out", type=Path, default=None, help="default: <mission>_stac.parquet")
-    ap.add_argument("--push", action="store_true", help="push the result as tag stac-YYYYMMDD")
+    ap.add_argument("input", type=Path, help="merged GeoParquet, e.g. sentinel-1_grd.parquet")
+    ap.add_argument("--collection", default=None,
+                    help="collection name, e.g. grd (default: guessed from the input filename)")
+    ap.add_argument("--out", type=Path, default=None, help="default: <mission>_<collection>_stac.parquet")
+    ap.add_argument("--push", action="store_true", help="push the result as tag stac-<collection>-YYYYMMDD")
     args = ap.parse_args(argv)
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper(),
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
     cfg = Config.from_env()
-    args.out = args.out or Path(f"{cfg.mission}_stac.parquet")
+    collection = args.collection or args.input.stem.removeprefix(f"{cfg.mission}_")
+    args.out = args.out or Path(f"{cfg.mission}_{collection}_stac.parquet")
 
-    src = pq.read_table(args.input)
-    geo_meta = (src.schema.metadata or {}).get(b"geo")
+    pf = pq.ParquetFile(args.input)
+    # ParquetFile.schema_arrow.metadata (and pq.read_schema()) can fail to
+    # surface custom KV metadata on files rewritten by cogp (a different
+    # writer, parquet-rs, not pyarrow's own) -- ParquetFile.metadata.metadata
+    # reads the raw FileMetaData KV pairs directly and does see it.
+    geo_meta = (pf.metadata.metadata or {}).get(b"geo")
     if geo_meta is None:
         log.error("%s is missing GeoParquet metadata", args.input)
         return 1
-    stac_table = build_stac_table(src, cfg.mission)
-    write(stac_table, geo_meta, cfg.mission, args.out)
-    log.info("wrote %s: %d rows", args.out, stac_table.num_rows)
+
+    # Batched read+write: pq.read_table() would materialize the whole input
+    # (multiple GB compressed, several times that decompressed -- enough to
+    # get OOM-killed) in memory at once. Each row's STAC properties only
+    # depend on that row, so there's no need to ever hold more than one
+    # batch, matching the row-group granularity the merge step already wrote.
+    rows = 0
+    writer: pq.ParquetWriter | None = None
+    tmp = args.out.with_suffix(args.out.suffix + ".part")
+    try:
+        for batch in pf.iter_batches(batch_size=100_000):
+            stac_table = build_stac_table(pa.Table.from_batches([batch]), cfg.mission)
+            if writer is None:
+                meta = {b"geo": geo_meta, b"stac-geoparquet": json.dumps({
+                    "version": STAC_GEOPARQUET_VERSION,
+                    "collections": {cfg.mission: collection_json(cfg.mission)},
+                }).encode()}
+                writer = pq.ParquetWriter(tmp, stac_table.schema.with_metadata(meta),
+                                           compression="zstd", compression_level=9)
+            writer.write_table(stac_table, row_group_size=100_000)
+            rows += stac_table.num_rows
+    finally:
+        if writer is not None:
+            writer.close()
+    tmp.replace(args.out)
+    log.info("wrote %s: %d rows", args.out, rows)
     log.info("converting %s to COGP layout", args.out)
     convert_to_cogp(args.out)
 
     if args.push:
         registry = Registry(cfg.oci_repo)
-        tag = f"stac-{date.today():%Y%m%d}"
+        tag = f"stac-{collection}-{date.today():%Y%m%d}"
         registry.push(tag, args.out, {
             "org.opencontainers.image.title": args.out.name,
-            "cdsemeta.rows": str(stac_table.num_rows),
+            "cdsemeta.rows": str(rows),
+            "cdsemeta.collection": collection,
             "cdsemeta.mission": cfg.mission,
             "cdsemeta.version": __version__,
         })

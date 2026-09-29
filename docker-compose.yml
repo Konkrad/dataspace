@@ -31,7 +31,7 @@ services:
     environment:
       MISSION: sentinel-1
     working_dir: /work
-    command: ["python", "-m", "cdsemeta.merge", "--out", "/work/sentinel-1/sentinel-1_all.parquet",
+    command: ["python", "-m", "cdsemeta.merge", "--out-dir", "/work/sentinel-1",
               "--cache", "/work/sentinel-1/cache", "--push"]
 
 volumes:
