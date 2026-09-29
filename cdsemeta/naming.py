@@ -63,7 +63,14 @@ def relpath_for_tag(tag: str) -> str | None:
 
 
 def latest_per_day(tags: list[str]) -> list[str]:
-    """Keep only the newest catalogue generation for each (platform, day)."""
+    """Keep only the newest catalogue generation for each (platform, day).
+
+    Returned in (day, platform) order -- not sorted tag-string order, which
+    would group all of one satellite's days before the next (tags start with
+    the platform code). merge() relies on (day, platform) order to
+    concatenate same-day files from different satellites (e.g. S1A/S1B/S1C/
+    S1D) in roughly chronological order without a separate sort.
+    """
     best: dict[tuple[str, str], tuple[str, str]] = {}
     for t in tags:
         info = parse_tag(t)
@@ -72,4 +79,4 @@ def latest_per_day(tags: list[str]) -> list[str]:
         k = (info.platform, info.day)
         if k not in best or info.generated > best[k][0]:
             best[k] = (info.generated, t)
-    return sorted(t for _, t in best.values())
+    return [tag for (platform, day), (_, tag) in sorted(best.items(), key=lambda kv: (kv[0][1], kv[0][0]))]

@@ -44,6 +44,23 @@ def test_latest_per_day():
     ]
 
 
+def test_latest_per_day_orders_by_day_not_platform():
+    # S1B's single day is chronologically between two of S1A's -- a plain
+    # sort of the tag strings would group all of S1A before any S1B, since
+    # tags start with the platform code. merge() needs (day, platform) order
+    # so cross-satellite files interleave correctly.
+    tags = [
+        "S1A_20260101_COPERNICUS_catalogue_20260102",
+        "S1A_20260103_COPERNICUS_catalogue_20260104",
+        "S1B_20260102_COPERNICUS_catalogue_20260103",
+    ]
+    assert latest_per_day(tags) == [
+        "S1A_20260101_COPERNICUS_catalogue_20260102",
+        "S1B_20260102_COPERNICUS_catalogue_20260103",
+        "S1A_20260103_COPERNICUS_catalogue_20260104",
+    ]
+
+
 def test_parse_ts():
     assert parse_ts("9999-12-31T23:59:59.999999Z").year == 9999
     assert parse_ts("2024-02-16T11:09:59.935").utcoffset().total_seconds() == 0
@@ -114,14 +131,18 @@ def test_build_stac_table(tmp_path):
     merge([a], out, tmp_path)
     src = pq.read_table(out)
 
+    odata_found_rows = src.column("odata_found").to_pylist().count(True)
     stac_table = build_stac_table(src, "sentinel-1")
-    assert stac_table.num_rows == src.num_rows
+    assert stac_table.num_rows == odata_found_rows < src.num_rows
     ext = stac_table.column("stac_extensions")[0].as_py()
     assert "https://stac-extensions.github.io/sar/v1.3.0/schema.json" in ext
 
     write(stac_table, src.schema.metadata[b"geo"], "sentinel-1", tmp_path / "stac.parquet")
     gdf = gpd.read_parquet(tmp_path / "stac.parquet")
     assert not gdf["id"].str.endswith(".SAFE").any()
+    # odata_found=False rows (e.g. CARD-COH12, which has no OData attributes)
+    # are dropped from the STAC output entirely.
+    assert not gdf["id"].str.contains("CARD-COH12").any()
 
     found = gdf[gdf["product:type"].notna()].iloc[0]
     assert found["platform"] == "sentinel-1a"
@@ -130,10 +151,6 @@ def test_build_stac_table(tmp_path):
     assert found["product:timeliness_category"] in ("NRT-3h", "Fast-24h")
     assert found["processing:level"] == "L1"
     assert found["assets"]["data"]["href"].startswith("s3://eodata/")
-
-    missing = gdf[gdf["product:type"].isna()].iloc[0]
-    assert "CARD-COH12" in missing["id"]
-    assert missing["assets"]["data"]["href"].startswith("s3://eodata/")
 
 
 def test_push_links_package_to_repo(tmp_path, monkeypatch):
