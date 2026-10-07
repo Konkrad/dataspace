@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+# Prune unused Docker images/containers on the deploy host after every
+# deploy. Kamal's own built-in prune (docker image prune --filter
+# label=service=cdsemeta-worker) only catches dangling images for this one
+# service -- it doesn't touch old tagged versions kept around, or anything
+# unrelated. Left unchecked this fills the host's disk (a real incident on
+# this 9GB box, shared with cms-digital and other apps), eventually taking
+# the whole server down, not just this app.
+#
+# Only removes: exited containers, and images not attached to any container
+# (running or stopped). Never touches volumes (cdsemeta_work is safe) and
+# never touches the image backing a currently-running container.
+#
+# KAMAL_HOSTS is provided by Kamal (comma-separated).
+
+set -eu
+
+for host in $(echo "$KAMAL_HOSTS" | tr ',' ' '); do
+  echo "Pruning unused Docker images/containers on $host..."
+  ssh -o ConnectTimeout=15 "$host" '
+    docker container prune -f
+    docker image prune -af
+    df -h / | tail -1
+  '
+done
