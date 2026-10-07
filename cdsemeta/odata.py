@@ -17,6 +17,18 @@ UUID_RE = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]
 EXPAND = ("Attributes", "Assets", "Locations")
 
 
+class Blocked(Exception):
+    """CDSE's WAF rejected the request outright -- not a per-ID or rate issue.
+
+    Shaped like ``{"status": "error", "data": {"message": "...violation...
+    reference ID: ..."}}``, distinct from OData's own error shape
+    (``{"error": {"code": ..., "message": ...}}``), so this is specifically
+    a security-policy block, not an ordinary not-found/bad-request response.
+    No Retry-After, no rate-limit wording -- retrying (with or without
+    backoff) won't clear this; it needs CDSE support to lift it.
+    """
+
+
 class RateLimiter:
     """Spaces calls so that at most ``rps`` start per second across threads."""
 
@@ -49,6 +61,13 @@ class ODataClient:
     def _get(self, params: list[tuple[str, str]] | None, url: str | None = None) -> dict:
         self.limiter.wait()
         r = self.session.get(url or self.url, params=params, timeout=self.timeout)
+        if r.status_code == 403:
+            try:
+                body = r.json()
+            except ValueError:
+                body = None
+            if isinstance(body, dict) and body.get("status") == "error":
+                raise Blocked(body.get("data", {}).get("message", "request rejected (403)"))
         r.raise_for_status()
         return r.json()
 

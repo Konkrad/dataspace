@@ -5,8 +5,10 @@ import geopandas as gpd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
+import requests
 
 from cdsemeta import csvfile, geoparquet
+from cdsemeta.config import Config
 from cdsemeta.naming import latest_per_day, parquet_name, parquet_relpath, parse_tag, relpath_for_tag, tag_for
 from cdsemeta.transform import build_table, parse_ts
 
@@ -215,3 +217,59 @@ def test_tags_of_new_package_is_empty(monkeypatch):
 
     monkeypatch.setattr(reg, "_run", fail)
     assert reg.tags() == set()
+
+
+class _FakeResponse:
+    def __init__(self, status_code, body):
+        self.status_code = status_code
+        self._body = body
+
+    def json(self):
+        return self._body
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.HTTPError(response=self)
+
+
+def test_odata_waf_block_raises_blocked(monkeypatch):
+    from cdsemeta.odata import Blocked, ODataClient
+
+    client = ODataClient(requests.Session(), "https://example/odata", rps=0)
+    body = {"status": "error", "data": {"message": "rejected due to a violation, reference ID: 123"}}
+    monkeypatch.setattr(client.session, "get", lambda *a, **k: _FakeResponse(403, body))
+    with pytest.raises(Blocked, match="violation"):
+        client._get(None)
+
+
+def test_odata_ordinary_403_is_not_blocked(monkeypatch):
+    from cdsemeta.odata import ODataClient
+
+    client = ODataClient(requests.Session(), "https://example/odata", rps=0)
+    monkeypatch.setattr(client.session, "get", lambda *a, **k: _FakeResponse(403, {"error": {"message": "nope"}}))
+    with pytest.raises(requests.HTTPError):
+        client._get(None)
+
+
+def test_worker_stops_and_idles_on_blocked(monkeypatch):
+    from cdsemeta import worker
+    from cdsemeta.listing import CsvEntry
+    from cdsemeta.odata import Blocked
+
+    sleeps = []
+
+    def fake_sleep(seconds):
+        sleeps.append(seconds)
+        raise worker.Stop()
+
+    monkeypatch.setattr(worker.time, "sleep", fake_sleep)
+    monkeypatch.setattr(worker, "list_csvs", lambda *a, **k: [CsvEntry("S1A/2024/01/x.csv", "md5", 1, "now")])
+    monkeypatch.setattr(worker, "process", lambda *a, **k: (_ for _ in ()).throw(Blocked("rejected")))
+    monkeypatch.setattr(worker.Registry, "tags", lambda self: set())
+
+    cfg = Config.from_env()
+    try:
+        worker.run(cfg)
+    except worker.Stop:
+        pass
+    assert sleeps and sleeps[0] == 86400
