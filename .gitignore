@@ -9,4 +9,4 @@ cache/
 
 # Kamal deploy config with real host/secret names (kamal-template.yml stays tracked)
 config/deploy.yml
-.kamal/
+.kamal/secrets
