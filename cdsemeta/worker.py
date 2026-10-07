@@ -20,7 +20,7 @@ from .config import Config
 from .http import make_session
 from .listing import CsvEntry, list_csvs
 from .naming import parquet_relpath, tag_for
-from .odata import ODataClient
+from .odata import Blocked, ODataClient
 from .registry import Registry
 from .transform import build_table
 
@@ -111,6 +111,17 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
             except Stop:
                 log.info("stopping; %s was not pushed and will be redone", entry.key)
                 return 0
+            except Blocked as e:
+                # CDSE's WAF rejected this outright, not a per-ID/rate issue
+                # (see odata.Blocked) -- retrying won't clear it, and exiting
+                # would just get restarted and hit the same block again,
+                # immediately and repeatedly. Stop reaching out entirely and
+                # idle instead; still interruptible (SIGTERM/SIGINT -> Stop).
+                log.error("CDSE blocked this worker (%s); giving up on %s and "
+                          "sleeping forever rather than keep retrying a block "
+                          "that won't clear on its own", e, entry.key)
+                while True:
+                    time.sleep(86400)
             except Exception:  # noqa: BLE001 - one bad file must not stop the worker
                 # Not pushed, so it is still missing from the registry and the
                 # next pass picks it up again.

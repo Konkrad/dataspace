@@ -18,10 +18,10 @@ from pathlib import Path
 import duckdb
 import pyarrow.parquet as pq
 
-from . import __version__
+from . import __version__, r2
 from .cogp import convert_to_cogp
 from .config import Config
-from .naming import latest_per_day, relpath_for_tag
+from .naming import latest_per_day, parse_tag, relpath_for_tag
 from .registry import Registry
 
 log = logging.getLogger("cdsemeta.merge")
@@ -134,12 +134,18 @@ def merge(files: list[Path], out: Path, tmp_dir: Path, memory_limit: str | None 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out-dir", type=Path, default=Path("."),
-                    help="directory for <mission>_<collection>.parquet files")
+                    help="directory for <mission>_<collection>/<year>.parquet files")
     ap.add_argument("--collection", choices=COLLECTIONS, default=None,
                     help="only merge this one collection (default: all of them)")
+    ap.add_argument("--year", type=int, default=None,
+                    help="only merge this one year (default: every year with data)")
     ap.add_argument("--cache", type=Path, default=Path("cache"), help="where pulled artifacts are kept")
-    ap.add_argument("--no-pull", action="store_true", help="only use files already in --cache")
-    ap.add_argument("--push", action="store_true", help="push each result as tag <collection>-YYYYMMDD")
+    ap.add_argument("--keep-cache", action="store_true",
+                    help="don't delete each year's pulled files afterwards (for repeated local runs)")
+    ap.add_argument("--force", action="store_true",
+                    help="rebuild a year's file even if it already exists and isn't the current year")
+    ap.add_argument("--push", action="store_true", help="also push each result to the OCI registry")
+    ap.add_argument("--upload-r2", action="store_true", help="upload each result to Cloudflare R2")
     ap.add_argument("--memory-limit", default=None, help="DuckDB memory limit, e.g. 4GB")
     args = ap.parse_args(argv)
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper(),
@@ -149,39 +155,60 @@ def main(argv: list[str] | None = None) -> int:
     registry = Registry(cfg.oci_repo)
     args.cache.mkdir(parents=True, exist_ok=True)
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    if args.no_pull:
-        tags = latest_per_day([p.stem for p in args.cache.rglob("*.parquet")])
-    else:
-        tags = latest_per_day(sorted(registry.tags()))
-        log.info("pulling %d artifacts into %s", len(tags), args.cache)
-        pull_all(registry, tags, args.cache)
-    files = [args.cache / relpath_for_tag(t) for t in tags]
-    if not files:
+
+    all_tags = latest_per_day(sorted(registry.tags()))
+    if not all_tags:
         log.error("nothing to merge")
         return 1
+    by_year: dict[str, list[str]] = {}
+    for t in all_tags:
+        by_year.setdefault(parse_tag(t).day[:4], []).append(t)
+    years = [str(args.year)] if args.year else sorted(by_year)
+    collections = (args.collection,) if args.collection else COLLECTIONS
+    current_year = f"{date.today():%Y}"
 
-    for collection in (args.collection,) if args.collection else COLLECTIONS:
-        out = args.out_dir / f"{cfg.mission}_{collection}.parquet"
-        log.info("merging %d files into %s", len(files), out)
-        rows = merge(files, out, args.cache, args.memory_limit, collection=collection)
-        if rows == 0:
-            out.unlink()
-            log.info("%s: no rows, skipping", collection)
+    for collection in collections:
+        (args.out_dir / f"{cfg.mission}_{collection}").mkdir(parents=True, exist_ok=True)
+
+    for year in years:
+        outs = {c: args.out_dir / f"{cfg.mission}_{c}" / f"{year}.parquet" for c in collections}
+        todo = {c: o for c, o in outs.items() if args.force or o.name == f"{current_year}.parquet" or not o.exists()}
+        if not todo:
+            log.info("%s: already merged for every collection, skipping (--force to redo)", year)
             continue
-        log.info("wrote %s: %d rows", out, rows)
-        log.info("converting %s to COGP layout", out)
-        convert_to_cogp(out)
-        if args.push:
-            tag = f"{collection}-{date.today():%Y%m%d}"
-            registry.push(tag, out, {
-                "org.opencontainers.image.title": out.name,
-                "cdsemeta.rows": str(rows),
-                "cdsemeta.files": str(len(files)),
-                "cdsemeta.collection": collection,
-                "cdsemeta.mission": cfg.mission,
-                "cdsemeta.version": __version__,
-            })
-            log.info("pushed %s:%s", cfg.oci_repo, tag)
+
+        year_tags = by_year.get(year, [])
+        log.info("pulling %d files for %s", len(year_tags), year)
+        files = pull_all(registry, year_tags, args.cache)
+        try:
+            for collection, out in todo.items():
+                log.info("merging %s %s (%d files)", collection, year, len(files))
+                rows = merge(files, out, args.cache, args.memory_limit, collection=collection)
+                if rows == 0:
+                    out.unlink(missing_ok=True)
+                    log.info("%s %s: no rows, skipping", collection, year)
+                    continue
+                log.info("wrote %s: %d rows", out, rows)
+                log.info("converting %s to COGP layout", out)
+                convert_to_cogp(out)
+                key = f"{cfg.mission}_{collection}/{year}.parquet"
+                if args.push:
+                    registry.push(f"{collection}-{year}", out, {
+                        "org.opencontainers.image.title": key,
+                        "cdsemeta.rows": str(rows),
+                        "cdsemeta.files": str(len(files)),
+                        "cdsemeta.collection": collection,
+                        "cdsemeta.year": year,
+                        "cdsemeta.mission": cfg.mission,
+                        "cdsemeta.version": __version__,
+                    })
+                    log.info("pushed %s:%s-%s", cfg.oci_repo, collection, year)
+                if args.upload_r2:
+                    r2.upload(out, key)
+        finally:
+            if not args.keep_cache:
+                for f in files:
+                    f.unlink(missing_ok=True)
     return 0
 
 
