@@ -273,3 +273,27 @@ def test_worker_stops_and_idles_on_blocked(monkeypatch):
     except worker.Stop:
         pass
     assert sleeps and sleeps[0] == 86400
+
+
+def test_worker_stops_polling_once_caught_up(monkeypatch):
+    from cdsemeta import worker
+
+    sleeps = []
+
+    def fake_sleep(seconds):
+        sleeps.append(seconds)
+        raise worker.Stop()
+
+    monkeypatch.setattr(worker.time, "sleep", fake_sleep)
+    monkeypatch.setattr(worker, "list_csvs", lambda *a, **k: [])
+    monkeypatch.setattr(worker.Registry, "tags", lambda self: set())
+
+    cfg = Config.from_env()  # RUN_ONCE=0 by default -- continuous backfill mode
+    assert not cfg.run_once
+    try:
+        worker.run(cfg)
+    except worker.Stop:
+        pass
+    # Never reaches the per-pass "sleeping Ns before checking again" sleep
+    # (cfg.poll_interval); only the permanent 86400s idle sleep.
+    assert sleeps == [86400]

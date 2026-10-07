@@ -94,6 +94,18 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
                 print(f"... and {len(todo) - 20} more")
             return 0
 
+        if not todo and not (cfg.run_once or only):
+            # Fully caught up. This worker's job (a one-time backfill) is
+            # done; ongoing new-day catch-up is a separate, periodic process
+            # (see .github/workflows/worker.yml). Polling forever here would
+            # just repeat the same "nothing to do" check against CDSE
+            # indefinitely for no purpose -- stop reaching out entirely
+            # instead. Still interruptible (SIGTERM/SIGINT -> Stop); a
+            # restart is what resumes checking, not a timer.
+            log.info("nothing left to do; stopping instead of polling further")
+            while True:
+                time.sleep(86400)
+
         failed = 0
         for i, entry in enumerate(todo, 1):
             work = Path(tempfile.mkdtemp(prefix="job-", dir=cfg.work_dir))
