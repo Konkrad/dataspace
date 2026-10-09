@@ -34,6 +34,13 @@ servers:
     hosts:
       - <SERVER_ALIAS>  # SSH alias defined in ~/.ssh/config
     proxy: false
+    # Cap the worker on small/shared hosts. Uncapped, a Sentinel-2 run
+    # (~10k+ rows per CSV, peaking ~350MB) pushed a 1 vCPU / 1GB box into
+    # memory thrashing until it needed a hard reboot. Over the cap, only
+    # this container is killed/restarted -- the host stays up.
+    options:
+      memory: 400m
+      cpus: 0.6
 
 # Local-registry-proxy trick: Kamal still wants a registry to push/pull from,
 # but pointing it at localhost:5555 makes it build and store the image
@@ -55,7 +62,7 @@ env:
     MISSION: <MISSION>  # e.g. sentinel-1
     OCI_BASE: <OCI_BASE>  # e.g. ghcr.io/<org>/dataspace
     ODATA_BATCH: "100"
-    ODATA_WORKERS: "4"
+    ODATA_WORKERS: "2"  # each in-flight batch holds ~100 products' full JSON in memory
     ODATA_RPS: "3"
     ORDER: asc
     POLL_INTERVAL: "21600"
