@@ -13,18 +13,22 @@ import signal
 import sys
 import tempfile
 import time
+from datetime import datetime
 from pathlib import Path
 
 from . import __version__, csvfile, geoparquet
-from .config import Config
+from .config import COLLECTIONS, Config
 from .http import make_session
 from .listing import CsvEntry, list_csvs
-from .naming import parquet_relpath, tag_for
+from .naming import parquet_relpath, parse_tag, tag_for
 from .odata import Blocked, ODataClient
 from .registry import Registry
 from .transform import build_table
 
 log = logging.getLogger("cdsemeta.worker")
+
+BLOCKED_WAIT_MIN = 30 * 60
+BLOCKED_WAIT_MAX = 6 * 3600
 
 
 class Stop(BaseException):
@@ -40,7 +44,9 @@ def process(entry: CsvEntry, cfg: Config, session, odata: ODataClient, work: Pat
     csv_path = work / Path(entry.key).name
     csvfile.download(session, entry.url(cfg.csv_list_url), entry, csv_path, timeout=cfg.http_timeout)
     df = csvfile.read_csv(csv_path)
-    products = odata.fetch(df["Id"].tolist())
+    info = parse_tag(tag_for(entry.key))
+    products = odata.fetch_day(COLLECTIONS[cfg.mission], info.platform,
+                               datetime.strptime(info.day, "%Y%m%d").date(), df["Id"].tolist())
     table, geoms, missing = build_table(df, products)
     out = work / parquet_relpath(entry.key)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -76,6 +82,7 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
     cfg.work_dir.mkdir(parents=True, exist_ok=True)
     log.info("mission %s (%s) -> %s", cfg.mission, ",".join(cfg.platforms), cfg.oci_repo)
 
+    blocked_wait = BLOCKED_WAIT_MIN
     while True:
         entries = list_csvs(session, cfg.csv_list_url, cfg.platforms, timeout=cfg.http_timeout)
         if only:
@@ -107,6 +114,7 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
                 time.sleep(86400)
 
         failed = 0
+        blocked = False
         for i, entry in enumerate(todo, 1):
             work = Path(tempfile.mkdtemp(prefix="job-", dir=cfg.work_dir))
             try:
@@ -120,20 +128,24 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
                 if not no_push:
                     registry.push(tag_for(entry.key), out, ann, root=work)
                     log.info("pushed %s:%s", cfg.oci_repo, tag_for(entry.key))
+                blocked_wait = BLOCKED_WAIT_MIN
             except Stop:
                 log.info("stopping; %s was not pushed and will be redone", entry.key)
                 return 0
             except Blocked as e:
-                # CDSE's WAF rejected this outright, not a per-ID/rate issue
-                # (see odata.Blocked) -- retrying won't clear it, and exiting
-                # would just get restarted and hit the same block again,
-                # immediately and repeatedly. Stop reaching out entirely and
-                # idle instead; still interruptible (SIGTERM/SIGINT -> Stop).
-                log.error("CDSE blocked this worker (%s); giving up on %s and "
-                          "sleeping forever rather than keep retrying a block "
-                          "that won't clear on its own", e, entry.key)
-                while True:
-                    time.sleep(86400)
+                # CDSE's WAF rejected us (see odata.Blocked). Observed to be
+                # temporary -- it cleared within hours both times -- so back
+                # off and retry rather than hammering it or giving up. The
+                # CSV wasn't pushed, so the next pass redoes it.
+                if cfg.run_once or only:
+                    log.error("CDSE blocked this worker (%s) on %s; exiting", e, entry.key)
+                    return 1
+                log.error("CDSE blocked this worker (%s) on %s; waiting %ds before retrying",
+                          e, entry.key, blocked_wait)
+                time.sleep(blocked_wait)
+                blocked_wait = min(blocked_wait * 2, BLOCKED_WAIT_MAX)
+                blocked = True
+                break
             except Exception:  # noqa: BLE001 - one bad file must not stop the worker
                 # Not pushed, so it is still missing from the registry and the
                 # next pass picks it up again.
@@ -142,6 +154,8 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
             finally:
                 shutil.rmtree(work, ignore_errors=True)
 
+        if blocked:
+            continue
         if cfg.run_once or only:
             return 1 if failed else 0
         log.info("pass finished (%d failed); sleeping %ds before checking again", failed, cfg.poll_interval)
