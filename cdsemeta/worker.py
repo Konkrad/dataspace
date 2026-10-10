@@ -13,14 +13,13 @@ import signal
 import sys
 import tempfile
 import time
-from datetime import datetime
 from pathlib import Path
 
 from . import __version__, csvfile, geoparquet
-from .config import COLLECTIONS, Config
+from .config import Config
 from .http import make_session
 from .listing import CsvEntry, list_csvs
-from .naming import parquet_relpath, parse_tag, tag_for
+from .naming import parquet_relpath, tag_for
 from .odata import Blocked, ODataClient
 from .registry import Registry
 from .transform import build_table
@@ -44,9 +43,7 @@ def process(entry: CsvEntry, cfg: Config, session, odata: ODataClient, work: Pat
     csv_path = work / Path(entry.key).name
     csvfile.download(session, entry.url(cfg.csv_list_url), entry, csv_path, timeout=cfg.http_timeout)
     df = csvfile.read_csv(csv_path)
-    info = parse_tag(tag_for(entry.key))
-    products = odata.fetch_day(COLLECTIONS[cfg.mission], info.platform,
-                               datetime.strptime(info.day, "%Y%m%d").date(), df["Id"].tolist())
+    products = odata.fetch(df["Id"].tolist())
     table, geoms, missing = build_table(df, products)
     out = work / parquet_relpath(entry.key)
     out.parent.mkdir(parents=True, exist_ok=True)
