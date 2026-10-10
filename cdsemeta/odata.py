@@ -7,7 +7,6 @@ import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, datetime, timedelta, timezone
 from typing import Iterable
 
 import requests
@@ -16,12 +15,6 @@ log = logging.getLogger(__name__)
 
 UUID_RE = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 EXPAND = ("Attributes", "Assets", "Locations")
-PAGE = 1000
-MAX_WINDOW = 10_000
-
-
-def _iso(t: datetime) -> str:
-    return f"{t:%Y-%m-%dT%H:%M:%S}.{t.microsecond // 1000:03d}Z"
 
 
 class Blocked(Exception):
@@ -104,52 +97,6 @@ class ODataClient:
                 return []
             mid = len(ids) // 2
             return self._fetch_batch(ids[:mid]) + self._fetch_batch(ids[mid:])
-
-    def _window(self, base_filter: str, start: datetime, end: datetime) -> list[dict]:
-        """All products sensed in [start, end), splitting the window if needed.
-
-        CDSE stops paging at $skip=10000, so a query can return at most
-        10000 + PAGE items -- the rest is silently dropped (measured: a
-        12,416-product day came back as exactly 11,000). The first page
-        carries @odata.count, so oversized windows are halved at no extra
-        cost before paging on.
-        """
-        f = f"{base_filter} and ContentDate/Start ge {_iso(start)} and ContentDate/Start lt {_iso(end)}"
-        params = [("$filter", f), ("$top", str(PAGE)), ("$orderby", "Id asc"), ("$count", "true")]
-        params += [("$expand", e) for e in EXPAND]
-        data = self._get(params)
-        count = data.get("@odata.count")
-        if count is not None and count > MAX_WINDOW and end - start > timedelta(minutes=1):
-            mid = start + (end - start) / 2
-            return self._window(base_filter, start, mid) + self._window(base_filter, mid, end)
-        products = list(data.get("value", []))
-        next_link = data.get("@odata.nextLink")
-        while next_link:
-            data = self._get(None, next_link)
-            products += data.get("value", [])
-            next_link = data.get("@odata.nextLink")
-        if count is not None and len(products) < count:
-            log.warning("window %s..%s: got %d of %d products", _iso(start), _iso(end), len(products), count)
-        return products
-
-    def fetch_day(self, collection: str, platform: str, day: date, ids: Iterable[str]) -> dict[str, dict]:
-        """Return ``{id: product}`` for ``ids`` (one CSV: one platform, one day).
-
-        Asks for the whole sensing day in pages of 1000 (~10x fewer, much
-        shorter requests than 100-ID batches -- the batches are what got us
-        WAF-blocked), then looks up any ID the day query didn't return with
-        the per-ID query, so a product is only reported missing if both
-        methods agree it's not in OData.
-        """
-        wanted = list(ids)
-        wanted_set = set(wanted)
-        start = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
-        base = f"Collection/Name eq '{collection}' and startswith(Name,'{platform}_')"
-        found = {p["Id"]: p for p in self._window(base, start, start + timedelta(days=1)) if p["Id"] in wanted_set}
-        missing = [i for i in wanted if i not in found]
-        if missing:
-            found.update(self.fetch(missing))
-        return found
 
     def fetch(self, ids: Iterable[str]) -> dict[str, dict]:
         """Return ``{id: product}`` for all IDs OData knows about."""
