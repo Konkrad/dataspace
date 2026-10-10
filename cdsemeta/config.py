@@ -24,6 +24,14 @@ MISSIONS: dict[str, tuple[str, ...]] = {
     "sentinel-5p": ("S5P",),
 }
 
+# OData Collection/Name for each mission.
+COLLECTIONS: dict[str, str] = {
+    "sentinel-1": "SENTINEL-1",
+    "sentinel-2": "SENTINEL-2",
+    "sentinel-3": "SENTINEL-3",
+    "sentinel-5p": "SENTINEL-5P",
+}
+
 
 @dataclass(frozen=True)
 class Config:
