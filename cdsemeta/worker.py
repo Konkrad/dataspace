@@ -26,7 +26,7 @@ from .transform import build_table
 
 log = logging.getLogger("cdsemeta.worker")
 
-BLOCKED_WAIT_MIN = 30 * 60
+BLOCKED_WAIT_MIN = 2 * 60
 BLOCKED_WAIT_MAX = 6 * 3600
 
 
@@ -130,10 +130,12 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
                 log.info("stopping; %s was not pushed and will be redone", entry.key)
                 return 0
             except Blocked as e:
-                # CDSE's WAF rejected us (see odata.Blocked). Observed to be
-                # temporary -- it cleared within hours both times -- so back
-                # off and retry rather than hammering it or giving up. The
-                # CSV wasn't pushed, so the next pass redoes it.
+                # CDSE's WAF rejected us (see odata.Blocked). Through WARP we
+                # share an exit address with other users, and the block on
+                # it flickers on and off within minutes (same address,
+                # same request: 200, 403, 200, 200). So retry soon, doubling
+                # the wait while it persists. The CSV wasn't pushed, so the
+                # next pass redoes it.
                 if cfg.run_once or only:
                     log.error("CDSE blocked this worker (%s) on %s; exiting", e, entry.key)
                     return 1
