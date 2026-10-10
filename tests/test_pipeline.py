@@ -1,4 +1,5 @@
 import json
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import geopandas as gpd
@@ -312,3 +313,66 @@ def test_worker_stops_polling_once_caught_up(monkeypatch):
     # (cfg.poll_interval); only the permanent 86400s idle sleep.
     assert sleeps == [86400]
 
+
+class _FakeOData:
+    """Fake day-window endpoint with CDSE's paging cap (stops at $skip=10000)."""
+
+    def __init__(self, products):
+        self.products = products  # list of (Id, datetime)
+        self.requests = []
+
+    def get(self, url, params=None, timeout=None):
+        import re as _re
+        from datetime import datetime as _dt
+        from urllib.parse import parse_qs, urlparse
+
+        if params is None:  # nextLink
+            q = {k: v[0] for k, v in parse_qs(urlparse(url).query).items()}
+        else:
+            q = dict(params)
+        self.requests.append(q)
+        if q["$filter"].startswith("Id eq"):
+            ids = set(_re.findall(r"Id eq ([0-9a-f-]+)", q["$filter"]))
+            vals = [{"Id": i} for i, _ in self.products if i in ids]
+            return _FakeResponse(200, {"value": vals})
+        ge, lt = _re.findall(r"ge (\S+) and ContentDate/Start lt (\S+)", q["$filter"])[0]
+        parse = lambda s: _dt.strptime(s, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+        hits = sorted(i for i, t in self.products if parse(ge) <= t < parse(lt))
+        skip = int(q.get("$skip", 0))
+        body = {"value": [{"Id": i} for i in hits[skip:skip + 1000]], "@odata.count": len(hits)}
+        if skip + 1000 < len(hits) and skip + 1000 <= 10000:
+            body["@odata.nextLink"] = "https://example/odata?" + "&".join(
+                f"{k}={v}" for k, v in {**q, "$skip": skip + 1000}.items())
+        return _FakeResponse(200, body)
+
+
+def _products(n, day=datetime(2018, 5, 7, tzinfo=timezone.utc)):
+    import uuid
+    return [(str(uuid.UUID(int=i)), day + timedelta(seconds=i * 86400 // n)) for i in range(n)]
+
+
+def test_fetch_day_splits_windows_past_the_paging_cap():
+    from cdsemeta.odata import ODataClient
+
+    prods = _products(12416)
+    client = ODataClient(_FakeOData(prods), "https://example/odata", rps=0)
+    ids = [i for i, _ in prods]
+    got = client.fetch_day("SENTINEL-2", "S2B", date(2018, 5, 7), ids)
+    assert set(got) == set(ids)
+    # day split once into two ~6k windows; far fewer than 125 ID batches
+    assert len(client.session.requests) < 20
+
+
+def test_fetch_day_checks_missing_ids_with_per_id_lookup():
+    from cdsemeta.odata import ODataClient
+
+    prods = _products(50)
+    # one product the day query can't see (outside the day), one truly absent
+    stray = ("00000000-0000-0000-0000-0000000000ff", datetime(2018, 5, 9, tzinfo=timezone.utc))
+    fake = _FakeOData(prods + [stray])
+    client = ODataClient(fake, "https://example/odata", rps=0)
+    absent = "00000000-0000-0000-0000-0000000000fe"
+    got = client.fetch_day("SENTINEL-2", "S2B", date(2018, 5, 7), [i for i, _ in prods] + [stray[0], absent])
+    assert stray[0] in got          # found by the ID fallback
+    assert absent not in got        # missing from both -> reported missing
+    assert len(got) == 51
