@@ -79,12 +79,26 @@ expect it to take proportionally longer.
 
 Rows are sorted by `content_start`.
 
-**Products not found in OData.** About 1–4% of the CSV rows are not returned
-by OData, whether you look them up by Id or by Name. For Sentinel-1, so far
-these are all `CARD_BS` / `CARD-COH12` analysis-ready products. They are kept as rows built
-from the CSV alone (name, S3 path, dates, size, md5, and the bbox polygon as
-geometry) with `odata_found = false`. The count is recorded in the
-`cdsemeta.odata_missing` manifest annotation.
+**Products not found in OData.** About 1–4% of the CSV rows were not returned
+by OData, whether you look them up by Id or by Name. They are kept as rows
+built from the CSV alone (name, S3 path, dates, size, md5, and the bbox
+polygon as geometry) with `odata_found = false`. The count is recorded in the
+`cdsemeta.odata_missing` manifest annotation. For Sentinel-1 these were almost
+all `CARD_BS` / `CARD-COH12` products, which are now left out (below).
+
+**Left out.**
+
+- Names matching `EXCLUDE` in `cdsemeta/config.py` are dropped when a CSV is
+  read. For Sentinel-1 that is the CARD products (`_CARD[-_]…$`): a prototype
+  per [sentiwiki](https://sentiwiki.copernicus.eu/web/s1-products), not shown
+  in the CDSE browser, not in OData, and responsible for nearly all the
+  monthly churn and the duplicates across satellites. ETAD stays. Artifacts
+  built before this rule can still hold CARD rows until their day is next
+  rewritten; `cdsemeta-merge` filters them out regardless.
+- CSVs dated before their satellite's launch (`LAUNCH` in the same file) are
+  skipped. The Oct 2026 dump has 1,559 S1B/S1C/S1D CSVs back to 2014 that hold
+  only copies of S1A CARD rows. Only Sentinel-1 has launch days so far;
+  Sentinel-2 has a stray 2015 CSV each for S2B (3 rows) and S2C (34 rows).
 
 ## Running it
 
@@ -166,20 +180,25 @@ skipped except the current and previous month; use `--year`, `--month` or
 cdsemeta-merge --out-dir out --cache cache [--push] [--upload-r2]
 ```
 
-This does five things:
+Per month, and per collection (`grd`, `slc`, `ocn`, `etad`, `raw`, `aux`,
+`other`, bucketed from the Sentinel-1 `productType`; another mission lands in
+`other` for now), it does this:
 
-1. Pulls the newest version of every (platform, day) into
-   `/work/sentinel-1/cache/S1X/YYYY/MM/`.
-   Already-pulled files are skipped, so it can be rerun.
+1. Pulls the newest artifact of every (platform, day) of that month into the
+   `--cache` folder. Already-pulled files are skipped, so it can be rerun.
 2. Merges them with DuckDB (`union_by_name`, so attribute columns that only
-   some product types have are fine).
-3. Sorts the result by `content_start`.
-4. Writes GeoParquet metadata.
-5. Reorders it into a [COGP](https://github.com/Kanahiro/cloud-optimized-geoparquet)
+   some product types have are fine), leaving out names matching the
+   mission's `EXCLUDE`. There is no explicit sort: the files arrive in
+   (day, platform) order and each is already sorted by `content_start`.
+3. Writes GeoParquet metadata.
+4. Reorders it into a [COGP](https://github.com/Kanahiro/cloud-optimized-geoparquet)
    layout with the `cogp` CLI (vendored in the image like `oras`), so viewers
-   can progressively load it, then pushes the file as tag `all-YYYYMMDD`. A
-   COGP file is still ordinary GeoParquet, so this is transparent to
-   non-COGP-aware readers.
+   can progressively load it. A COGP file is still ordinary GeoParquet, so
+   this is transparent to non-COGP-aware readers.
+5. With `--push`, pushes the file to the registry as `<collection>-<YYYY>-<MM>`;
+   with `--upload-r2`, uploads it to Cloudflare R2 (`R2_ACCOUNT_ID`,
+   `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`) under the same
+   `<mission>_<collection>/<YYYY>-<MM>.parquet` key.
 
 Use `--memory-limit 4GB` on small machines.
 
@@ -192,7 +211,8 @@ Sentinel-1, Sept artifacts vs the Oct dump: 2014–2025 changed on 5,590 of
 CSV-only `CARD_BS`; the whole archive up to 2025 needed 10 OData lookups.
 Removals are mostly the temporary orbit files (`AUX_RESORB`/`PREORB`/
 `MOEORB`), which CDSE deletes ~3–4 months after the sensing day. So a
-changed day is updated per product, not rebuilt.
+changed day is updated per product, not rebuilt. With CARD left out, the first
+Sentinel-1 sync touched 218 of 7,548 days.
 
 **ID files.** Next to the per-day data, one small Parquet per platform and
 year, `<mission>_ids/<PLATFORM>/<year>.parquet` (tag `ids-<year>-<s1>-<s1a>`,
@@ -220,15 +240,20 @@ About 15 MB per platform-year for Sentinel-1 (S1A 2024: 1.27M rows).
    through, save and push the new ID file. If a day failed, the ID file is
    left as it was, so a rerun looks at the same days again.
 
-Days without an artifact are left to the worker. The first run (no ID files
-yet) compares every day's artifact with its CSV; S1A 2024 took under a
-minute with local artifacts.
+Days without an artifact are left to the worker. Without ID files, the first
+run compares every day's artifact with its CSV (one pull per day); S1A 2024
+took under a minute with local artifacts. Better to create the ID files first
+(below).
 
 ```sh
 cdsemeta-update sync                      # monthly: everything
 cdsemeta-update sync --recent-days 31     # daily: only the regenerated recent days
-cdsemeta-update sync --year 2024 --artifacts cache --ids ids --out out --no-push   # local dry run
+cdsemeta-update sync --dry-run --no-push --artifacts cache --ids ids   # only count the days it would check
+cdsemeta-update sync --year 2024 --artifacts cache --ids ids --out out --no-push   # local run, nothing pushed
 ```
+
+With `--ids <dir>` the ID files are read from and written to that folder
+instead of the registry (they are still pushed unless `--no-push`).
 
 If CDSE rewrites the zip during a run (every read is pinned to its ETag),
 the run stops with `ZipChanged`; just start it again.
@@ -238,31 +263,47 @@ the run stops with `ZipChanged`; just start it again.
 Needs `oras` logged in to GHCR (e.g. inside the image, with `GHCR_TOKEN`).
 
 - **The worker** counts a day as done if it has *any* tag, per-day or legacy
-  of whatever generation, so a full dump is no new work for it. The worker
-  deployed before this change still compares exact file names: redeploy it
-  **before the 2nd**, or it starts over.
+  of whatever generation, so a full dump is no new work for it. A worker
+  from before per-day tags compares exact file names and would start the
+  backfill over after a dump, so redeploy it before the 2nd.
 - **Retag** only adds tags (no upload, no CDSE calls), so it is safe while a
   backfill runs. Days pushed by an old worker afterwards get theirs on the
   next `retag`.
-- **First ID files**: `init-ids` takes a day from the zip only if its
-  artifact was built from exactly that CSV (a legacy tag with the same
-  generation). Sentinel-1's artifacts are from the Sept dump, whose CSVs are
-  gone, so it gets no ID files up front: its first `sync` compares every
-  day's artifact with the current CSV (one pull per day, ~9 GB).
+- **First ID files**, two ways:
+  - `init-ids` reads the CSVs from the zip, and takes a day only if its
+    artifact was built from exactly that CSV (a legacy tag with the same
+    generation). Run it while the artifacts' dump is still the current one.
+    It needs only the tag list, no artifacts. Days it can't vouch for are
+    left out, and the first `sync` compares those directly.
+  - `ids-from-artifacts` reads a local artifact tree (`cdsemeta-update
+    pull --cache <dir>`) and takes each day's `name` and `modification_date`,
+    whatever CSV it came from. It leaves out names the mission excludes, so
+    `sync` doesn't rewrite every day just to drop them. Use it when the CSVs
+    an artifact was built from are gone (Sentinel-1: Sept artifacts, Oct
+    zip).
+- **New missions** are built by a worker that only pushes per-day tags, which
+  carry no generation, so `init-ids` finds nothing for them. Use
+  `ids-from-artifacts`, or accept one pull per day on the first `sync`.
 
 ```sh
 MISSION=sentinel-1 cdsemeta-update retag --dry-run && MISSION=sentinel-1 cdsemeta-update retag
-MISSION=sentinel-2 cdsemeta-update init-ids     # while the Oct CSVs are still current
-MISSION=sentinel-1 cdsemeta-update sync         # first run: S1 up to the Oct dump, writes its ID files
-MISSION=sentinel-2 cdsemeta-update retag        # once the S2 backfill is done
+MISSION=sentinel-1 cdsemeta-update ids-from-artifacts --artifacts cache --ids ids --push
+MISSION=sentinel-2 cdsemeta-update init-ids --ids ids   # while the zip's CSVs are the ones the artifacts came from
+MISSION=sentinel-1 cdsemeta-update sync --ids ids       # then sync reads and updates only the changed days
 ```
 
 ## STAC GeoParquet
 
 ```sh
-docker compose run --rm sentinel-1-merge cdsemeta-stac /work/sentinel-1/sentinel-1_all.parquet \
-    --out /work/sentinel-1/sentinel-1_stac.parquet --push
+cdsemeta-stac out/sentinel-1_grd/2024-05.parquet --collection grd \
+    --out out/sentinel-1_grd_stac/2024-05.parquet
 ```
+
+Not yet adapted to the monthly files: it handles one file at a time, always
+needs `--collection` (the file name no longer says it), has no R2 upload, and
+`--push` writes a tag with today's date, so two months pushed on the same
+day would overwrite each other. Every row's STAC `collection` is the mission
+(`sentinel-1`), not `grd`.
 
 Maps cdsemeta's raw OData attribute columns (`orbitNumber`, `orbitDirection`,
 `polarisationChannels`, `productType`, ...) into the STAC properties CDSE's
@@ -280,6 +321,22 @@ Like the merged file, this is run through `cogp convert` (rerun on this file
 specifically, since adding columns after a COGP conversion would leave its
 `geo.lod` metadata pointing at stale row groups) and pushed as its own tag,
 `stac-YYYYMMDD`.
+
+## Deploying and scheduled updates
+
+- **Backfill worker:** Kamal, one mission at a time on a small host. Copy
+  `kamal-template.yml` to `config/deploy.yml` (git-ignored), fill in the
+  placeholders and set `MISSION`; to move to the next mission, change
+  `MISSION` and run `kamal deploy`. Kamal builds from the committed git state,
+  so commit first. The worker stops itself when nothing is left to do.
+- **Updates:** `.github/workflows/worker.yml` runs, per mission (a matrix of
+  `sentinel-1` and `sentinel-2`, one at a time), the daily job (the worker for
+  the last 31 days, then `sync --recent-days 31`) and the monthly job (a full
+  `sync`). It pushes with the workflow's own `GITHUB_TOKEN`, so every package
+  needs this repository under Package settings → Manage Actions access with
+  the Write role. The `schedule` lines are commented out until a manual run
+  has worked. Add a mission to the matrix once its backfill is done and it
+  has ID files.
 
 ## Development
 
