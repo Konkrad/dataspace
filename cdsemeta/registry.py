@@ -62,7 +62,9 @@ class Registry:
         """
         ann = {SOURCE_ANNOTATION: SOURCE_REPO_URL, **annotations}
         manifest_ann = {"$manifest": {k: str(v) for k, v in ann.items()}}
-        root = root or file.parent
+        # oras runs with cwd=root, so every path handed to it must be absolute.
+        file = file.resolve()
+        root = (root or file.parent).resolve()
         rel = file.relative_to(root).as_posix()
         ann_file = root / f"{file.name}.annotations.json"
         ann_file.write_text(json.dumps(manifest_ann))
@@ -73,6 +75,13 @@ class Registry:
             "--disable-path-validation",
             f"{rel}:{PARQUET_MEDIA_TYPE}",
         ], cwd=root)
+
+    def tag(self, src: str, *tags: str) -> None:
+        """Point more tags at ``repo:src``'s manifest (no blob upload)."""
+        self._run(["tag", f"{self.repo}:{src}", *tags])
+
+    def manifest(self, tag: str) -> dict:
+        return json.loads(self._run(["manifest", "fetch", f"{self.repo}:{tag}"]))
 
     def pull(self, tag: str, dest: Path) -> None:
         dest.mkdir(parents=True, exist_ok=True)

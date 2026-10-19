@@ -1,33 +1,72 @@
-name: Sentinel-1 worker (latest days)
+name: Catalogue updates
 
-# Complements the always-on worker deployed via Kamal, which works through
-# the historical backlog (ORDER=asc). This one runs newest-first (ORDER=desc)
-# with RUN_ONCE=1, so a scheduled run just catches up on whatever new daily
-# CSVs have appeared since the last run and exits -- no long-running process,
-# no need for the IPv6/SOCKS-proxy workaround stardust needs (GitHub-hosted
-# runners have normal internet).
+# Complements the always-on backfill worker deployed via Kamal.
+#
+# - daily: CDSE regenerates the last 30 days every day at ~03:00 UTC. The
+#   worker builds new days (RUN_ONCE, last 31 days), then `sync --recent-days
+#   31` updates the regenerated ones per product.
+# - monthly: CDSE regenerates every CSV on the 2nd. `sync` reads the whole
+#   mission out of the catalogue zip, diffs it against the ID files, updates
+#   the changed days and pushes the new ID files.
+#
+# GitHub-hosted runners have normal internet, so no IPv6/SOCKS-proxy
+# workaround as on stardust. Work goes to /mnt (the big disk on the runner).
+#
+# The schedules stay off until the GHCR_TOKEN secret (classic PAT with
+# write:packages) is set and the per-day tags are in place; until then run
+# it by hand (workflow_dispatch).
 
 on:
-  schedule:
-    - cron: "0 6 * * *" # daily, 06:00 UTC
-  workflow_dispatch: {}
+  # schedule:
+  #   - cron: "0 6 * * *"  # daily, 06:00 UTC
+  #   - cron: "0 12 2 * *" # monthly, the 2nd, 12:00 UTC
+  workflow_dispatch:
+    inputs:
+      job:
+        description: daily or monthly
+        default: daily
+        type: choice
+        options: [daily, monthly]
 
 jobs:
-  worker:
+  update:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 1 # one mission at a time: one CDSE client
+      matrix:
+        mission: [sentinel-1, sentinel-2]
     steps:
       - uses: actions/checkout@v4
 
       - name: Build image
         run: docker build -t cdsemeta .
 
-      - name: Run worker (newest days first, single pass)
+      - name: Pick job
+        id: job
         run: |
-          docker run --rm \
-            -e MISSION=sentinel-1 \
-            -e ORDER=desc \
-            -e RUN_ONCE=1 \
-            -e GHCR_USER=Konkrad \
-            -e GHCR_TOKEN="${{ secrets.GHCR_TOKEN }}" \
-            cdsemeta
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            if [ "${{ github.event.schedule }}" = "0 12 2 * *" ]; then echo "job=monthly" >> "$GITHUB_OUTPUT"; else echo "job=daily" >> "$GITHUB_OUTPUT"; fi
+          else
+            echo "job=${{ inputs.job }}" >> "$GITHUB_OUTPUT"
+          fi
+          sudo mkdir -p /mnt/work && sudo chown 1000 /mnt/work
+
+      - name: Daily (last 31 days)
+        if: steps.job.outputs.job == 'daily'
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          run() { docker run --rm -v /mnt/work:/work -w /work -e MISSION=${{ matrix.mission }} \
+                    -e GHCR_USER=Konkrad -e GHCR_TOKEN "$@"; }
+          run -e ORDER=desc -e RUN_ONCE=1 -e RECENT_DAYS=31 cdsemeta
+          run cdsemeta cdsemeta-update sync --work /work/sync --recent-days 31
+
+      - name: Monthly (full dump)
+        if: steps.job.outputs.job == 'monthly'
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          docker run --rm -v /mnt/work:/work -w /work -e MISSION=${{ matrix.mission }} \
+            -e GHCR_USER=Konkrad -e GHCR_TOKEN cdsemeta cdsemeta-update sync --work /work/sync

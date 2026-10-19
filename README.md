@@ -6,26 +6,31 @@ GeoParquet files with **all** OData metadata, and stores them in an OCI
 registry (GHCR) with [ORAS](https://oras.land).
 
 ```
-CSV listing ──► CSV ids ──► OData (100 ids/request) ──► GeoParquet ──► oras push ghcr.io/konkrad/dataspace/<mission>:<csv name>
+CSV listing ──► CSV ids ──► OData ──► GeoParquet ──► oras push ghcr.io/konkrad/dataspace/<mission>:<platform>_<day>
 ```
 
 - One package per mission, e.g. `ghcr.io/konkrad/dataspace/sentinel-1`
-  (see [Missions](#missions)). Sentinel-1 is the one running for now.
-- One GeoParquet per CSV, with the same name and the same folder structure as
-  the CSV archive. The CSV
-  `S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20260901.csv` becomes tag
-  `S1A_20240101_COPERNICUS_catalogue_20260901`, which contains
-  `S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20260901.parquet`.
-  `oras pull` recreates that folder tree.
-- **The registry is the state.** Each pass lists all CSVs, lists the registry
-  tags, and processes whatever is missing. There is no local database, so a
-  crash or restart just continues. A file is only pushed after it has been
-  fully built and checked, so there are no partial uploads.
-- CDSE regenerates recent days. A regenerated day gets a new catalogue date in
-  its file name, so it shows up as new work. The merge step only uses the
-  newest version of each day.
-- When everything is done, the worker sleeps (`POLL_INTERVAL`, 6 h by default)
-  and then picks up new daily CSVs.
+  (see [Missions](#missions)).
+- One GeoParquet per (satellite, sensing day), tagged `S1A_20240101`. The file
+  inside keeps the CSV's name and folder structure: the CSV
+  `S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20261001.csv` becomes
+  `S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20261001.parquet`, so the
+  file name says which catalogue generation it was built from (also in the
+  `eu.copernicus.csv.generation` annotation). `oras pull` recreates that
+  folder tree.
+- **The tag is mutable.** CDSE regenerates the last 30 days every day at
+  03:00 UTC and every CSV on the 2nd of each month, with the generation date
+  in the file name. A changed day is updated in place under the same tag;
+  only its added/modified rows are rebuilt (see [Updates](#updates)).
+  Older artifacts were tagged with the full CSV name
+  (`S1A_20240101_COPERNICUS_catalogue_20260901`); `cdsemeta-update retag`
+  gives them their per-day tags, and the per-day tag always wins.
+- **The registry is the state.** The worker lists all CSVs and the registry
+  tags and builds whatever day is missing; `cdsemeta-update sync` finds
+  changed days through the [ID files](#updates). There is no local database,
+  so a crash or restart just continues.
+  A file is only pushed after it has been fully built and checked, so there
+  are no partial uploads.
 
 ## Missions
 
@@ -50,6 +55,7 @@ has one CSV per collection rather than per day, and is not supported.
 | What | Where |
 |---|---|
 | CSV files | `https://s3.waw3-1.cloudferro.com/swift/v1/CatalogueCSV/<PLATFORM>/YYYY/MM/*.csv`. This is the public Swift container behind csv.dataspace.copernicus.eu; its JSON listing gives the md5 of each file. |
+| All CSVs, zipped | `…/CatalogueCSV/CopernicusCatalogueCSV.zip` (13 GB, every mission, rebuilt daily ~03:00 UTC). Read with Range requests, so only the wanted CSVs are downloaded: S1 1.9 GB, S2 7.9 GB (vs 7.8 / 35.9 GB as single CSVs). |
 | Metadata | `https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Id eq … or …&$expand=Attributes&$expand=Assets&$expand=Locations` |
 
 For Sentinel-1, in September 2026 there were about 7,500 CSVs with roughly
@@ -101,14 +107,14 @@ geometry) with `odata_found = false`. The count is recorded in the
 Useful one-offs:
 
 ```sh
-# Process a single CSV into /work without pushing
+# Process a single day into /work without pushing
 docker compose run --rm sentinel-1 python -m cdsemeta.worker \
-    --only S1A_20240101_COPERNICUS_catalogue_20260901 --no-push --out /work/out
+    --only S1A_20240101 --no-push --out /work/out
 
 # See what is in the registry
 oras repo tags ghcr.io/konkrad/dataspace/sentinel-1
-oras pull ghcr.io/konkrad/dataspace/sentinel-1:S1A_20240101_COPERNICUS_catalogue_20260901 -o s1
-# -> s1/S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20260901.parquet
+oras pull ghcr.io/konkrad/dataspace/sentinel-1:S1A_20240101 -o s1
+# -> s1/S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20261001.parquet
 ```
 
 Everything goes into this repository's registry, one package per mission.
@@ -134,6 +140,7 @@ first push and isn't linked, connect it once under Package settings →
 | `ORDER` | `asc` | `asc` = oldest day first, `desc` = newest first |
 | `POLL_INTERVAL` | `21600` | seconds to sleep after each pass |
 | `RUN_ONCE` | `0` | `1` = exit after one pass |
+| `RECENT_DAYS` | `0` | only look at days sensed in the last N days (`0` = all) |
 | `ORAS_EXTRA_ARGS` | | e.g. `--plain-http` for a local test registry |
 
 ### Errors
@@ -142,19 +149,21 @@ first push and isn't linked, connect it once under Package settings →
   exponential backoff that respects `Retry-After`.
 - If OData rejects a batch with some other 4xx error, the batch is split in
   half until the bad id is isolated, and that id is treated as not found.
-- If a file still fails, the error is logged and the worker moves on. The file
-  is still missing from the registry, so the next pass retries it.
+- If a file still fails, the error is logged and the worker moves on. The day
+  is still missing, so the next pass retries it.
 - On SIGTERM (`docker compose stop`) the worker stops right away. The file it
   was working on is not pushed and gets redone later.
 
-## One big file
+## Monthly files
 
-Once everything is in the registry:
+The merge writes one file per collection and sensing month,
+`<mission>_<collection>/<YYYY>-<MM>.parquet` (tag `<collection>-<YYYY>-<MM>`),
+so an update only rewrites the months that changed. Existing files are
+skipped except the current and previous month; use `--year`, `--month` or
+`--force` to rebuild others. Once everything is in the registry:
 
 ```sh
-docker compose run --rm sentinel-1-merge
-# which runs: python -m cdsemeta.merge --out /work/sentinel-1/sentinel-1_all.parquet \
-#             --cache /work/sentinel-1/cache --push
+cdsemeta-merge --out-dir out --cache cache [--push] [--upload-r2]
 ```
 
 This does five things:
@@ -173,6 +182,80 @@ This does five things:
    non-COGP-aware readers.
 
 Use `--memory-limit 4GB` on small machines.
+
+## Updates
+
+CDSE regenerates every CSV on the 2nd of each month, and the last 30 days
+daily. A regeneration changes few rows of most days. Measured for
+Sentinel-1, Sept artifacts vs the Oct dump: 2014–2025 changed on 5,590 of
+~7,100 days, by 52k added and 22k modified rows out of 13.5M, almost all
+CSV-only `CARD_BS`; the whole archive up to 2025 needed 10 OData lookups.
+Removals are mostly the temporary orbit files (`AUX_RESORB`/`PREORB`/
+`MOEORB`), which CDSE deletes ~3–4 months after the sensing day. So a
+changed day is updated per product, not rebuilt.
+
+**ID files.** Next to the per-day data, one small Parquet per platform and
+year, `<mission>_ids/<PLATFORM>/<year>.parquet` (tag `ids-<year>-<s1>-<s1a>`,
+e.g. `ids-2024-s1-s1a`), with three columns:
+
+| Column | From | |
+|---|---|---|
+| `Name` | the CSV | the product name: unique like `Id`, and smaller |
+| `ModificationDate` | the CSV | a changed product gets a new one (true for all 21,866 modified rows in Sept→Oct) |
+| `day` | the CSV's file name | needed to find the day file of a removed product; the name doesn't say it reliably (AUX files carry their creation date first, S5P orbits crossing midnight the previous day) |
+
+About 15 MB per platform-year for Sentinel-1 (S1A 2024: 1.27M rows).
+
+**`cdsemeta-update sync`**, per platform and year:
+
+1. stream that year's CSVs out of the catalogue zip;
+2. diff their `(Name, ModificationDate, day)` against the ID file: a day
+   with any added, removed or modified name is looked at;
+3. pull the day's artifact and compare it with the CSV by name: drop names
+   the CSV no longer lists, rebuild added names and names with a new
+   `ModificationDate`, keep every other row as it is. OData is only asked
+   about rows that can be in it (not `CARD_BS`/`CARD-COH12`, not rows that
+   were already CSV-only), all of a chunk of 200 days together;
+4. push the day to its per-day tag; once every day of the platform-year went
+   through, save and push the new ID file. If a day failed, the ID file is
+   left as it was, so a rerun looks at the same days again.
+
+Days without an artifact are left to the worker. The first run (no ID files
+yet) compares every day's artifact with its CSV; S1A 2024 took under a
+minute with local artifacts.
+
+```sh
+cdsemeta-update sync                      # monthly: everything
+cdsemeta-update sync --recent-days 31     # daily: only the regenerated recent days
+cdsemeta-update sync --year 2024 --artifacts cache --ids ids --out out --no-push   # local dry run
+```
+
+If CDSE rewrites the zip during a run (every read is pinned to its ETag),
+the run stops with `ZipChanged`; just start it again.
+
+### Moving to per-day tags
+
+Needs `oras` logged in to GHCR (e.g. inside the image, with `GHCR_TOKEN`).
+
+- **The worker** counts a day as done if it has *any* tag, per-day or legacy
+  of whatever generation, so a full dump is no new work for it. The worker
+  deployed before this change still compares exact file names: redeploy it
+  **before the 2nd**, or it starts over.
+- **Retag** only adds tags (no upload, no CDSE calls), so it is safe while a
+  backfill runs. Days pushed by an old worker afterwards get theirs on the
+  next `retag`.
+- **First ID files**: `init-ids` takes a day from the zip only if its
+  artifact was built from exactly that CSV (a legacy tag with the same
+  generation). Sentinel-1's artifacts are from the Sept dump, whose CSVs are
+  gone, so it gets no ID files up front: its first `sync` compares every
+  day's artifact with the current CSV (one pull per day, ~9 GB).
+
+```sh
+MISSION=sentinel-1 cdsemeta-update retag --dry-run && MISSION=sentinel-1 cdsemeta-update retag
+MISSION=sentinel-2 cdsemeta-update init-ids     # while the Oct CSVs are still current
+MISSION=sentinel-1 cdsemeta-update sync         # first run: S1 up to the Oct dump, writes its ID files
+MISSION=sentinel-2 cdsemeta-update retag        # once the S2 backfill is done
+```
 
 ## STAC GeoParquet
 

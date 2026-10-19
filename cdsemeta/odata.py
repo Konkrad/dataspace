@@ -142,6 +142,8 @@ class ODataClient:
         methods agree it's not in OData.
         """
         wanted = list(ids)
+        if not wanted:
+            return {}
         wanted_set = set(wanted)
         start = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
         base = f"Collection/Name eq '{collection}' and startswith(Name,'{platform}_')"
