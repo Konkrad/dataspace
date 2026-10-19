@@ -9,12 +9,21 @@ metadata describing stale row-group boundaries.
 
 from __future__ import annotations
 
+import logging
+import shutil
 import subprocess
 from pathlib import Path
 
+log = logging.getLogger(__name__)
+
 
 def convert_to_cogp(path: Path, cogp_bin: str = "cogp") -> None:
-    """Reorder ``path`` in place into a COGP layout."""
+    """Reorder ``path`` in place into a COGP layout. Skips with a warning if
+    the binary is not found (vendored in the Docker image; not required locally
+    -- the file is still valid GeoParquet, just without progressive loading)."""
+    if not shutil.which(cogp_bin):
+        log.warning("cogp not found, skipping COGP conversion for %s", path.name)
+        return
     tmp = path.with_suffix(path.suffix + ".cogp.tmp")
     res = subprocess.run([cogp_bin, "convert", str(path), str(tmp)], capture_output=True, text=True)
     if res.returncode != 0:
