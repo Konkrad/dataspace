@@ -24,6 +24,29 @@ MISSIONS: dict[str, tuple[str, ...]] = {
     "sentinel-5p": ("S5P",),
 }
 
+# Product names left out entirely, as if the CSVs didn't list them. Sentinel-1
+# CARD_BS / CARD-COH12: ARD backscatter/coherence, a prototype
+# (https://sentiwiki.copernicus.eu/web/s1-products), not exposed in the CDSE
+# browser nor in OData, rewritten wholesale between dumps, and in the Oct 2026
+# dump also filed under the other S1 satellites.
+EXCLUDE: dict[str, tuple[str, ...]] = {
+    "sentinel-1": (r"_CARD[-_][A-Z0-9]+$",),
+}
+
+# Launch days (UTC). CSVs dated earlier are not real: the Oct 2026 dump has
+# 1,559 S1B/S1C/S1D CSVs back to 2014 holding only copies of S1A products.
+LAUNCH: dict[str, str] = {
+    "S1A": "20140403",
+    "S1B": "20160425",
+    "S1C": "20241205",
+    "S1D": "20251104",
+}
+
+
+def before_launch(platform: str, day: str) -> bool:
+    return day < LAUNCH.get(platform, "")
+
+
 # OData Collection/Name for each mission.
 COLLECTIONS: dict[str, str] = {
     "sentinel-1": "SENTINEL-1",
@@ -49,6 +72,11 @@ class Config:
     run_once: bool = False
     order: str = "asc"
     http_timeout: int = 120
+    recent_days: int = 0  # only look at days sensed in the last N days (0 = all)
+
+    @property
+    def exclude(self) -> tuple[str, ...]:
+        return EXCLUDE.get(self.mission, ())
 
     @classmethod
     def from_env(cls) -> "Config":
@@ -73,4 +101,5 @@ class Config:
             run_once=_env_bool("RUN_ONCE", d.run_once),
             order=_env("ORDER", d.order).lower(),
             http_timeout=int(_env("HTTP_TIMEOUT", str(d.http_timeout))),
+            recent_days=int(_env("RECENT_DAYS", str(d.recent_days))),
         )

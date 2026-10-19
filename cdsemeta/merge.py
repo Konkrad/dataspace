@@ -1,4 +1,5 @@
-"""Merge all per-day GeoParquet artifacts into one file.
+"""Merge the per-day GeoParquet artifacts into one file per collection and
+sensing month (``<mission>_<collection>/<YYYY>-<MM>.parquet``).
 
 Only the newest catalogue generation of each (platform, day) is used, so days
 that were regenerated are not counted twice.
@@ -12,7 +13,7 @@ import logging
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import duckdb
@@ -21,7 +22,7 @@ import pyarrow.parquet as pq
 from . import __version__, r2
 from .cogp import convert_to_cogp
 from .config import Config
-from .naming import latest_per_day, parse_tag, relpath_for_tag
+from .naming import find_day_file, latest_per_day, parse_tag, relpath_for_tag
 from .registry import Registry
 
 log = logging.getLogger("cdsemeta.merge")
@@ -50,9 +51,20 @@ COLLECTIONS = ("grd", "slc", "ocn", "etad", "raw", "aux", "other")
 
 def pull_all(registry: Registry, tags: list[str], cache: Path, workers: int = 8) -> list[Path]:
     def one(tag: str) -> Path:
-        f = cache / relpath_for_tag(tag)
-        if not f.exists():
+        info = parse_tag(tag)
+        if info.generated:  # legacy tag: the file name is known
+            f = cache / relpath_for_tag(tag)
+            if not f.exists():
+                registry.pull(tag, cache)
+            return f
+        # Per-day tag: the file is named after the generation it was built
+        # from. A cached copy may be an older generation (--keep-cache).
+        f = find_day_file(cache, info.platform, info.day)
+        if f is None:
             registry.pull(tag, cache)
+            f = find_day_file(cache, info.platform, info.day)
+            if f is None:
+                raise FileNotFoundError(f"{tag}: pulled, but no {info.platform}_{info.day}_*.parquet in it")
         return f
 
     with ThreadPoolExecutor(max_workers=workers) as pool:
@@ -84,10 +96,12 @@ def combined_geo(files: list[Path]) -> dict:
 
 
 def merge(files: list[Path], out: Path, tmp_dir: Path, memory_limit: str | None = None,
-          collection: str | None = None) -> int:
+          collection: str | None = None, exclude: tuple[str, ...] = ()) -> int:
     """``files`` must already be in ascending (platform, day) order (as
     ``latest_per_day`` returns them). If ``collection`` is given (one of
-    ``COLLECTIONS``), only rows bucketed into it are written.
+    ``COLLECTIONS``), only rows bucketed into it are written. Rows whose
+    ``name`` matches an ``exclude`` regex (``Config.exclude``) are left out: an
+    artifact can still hold them until its day is next rewritten.
 
     No explicit sort here: each CSV's embedded date is the *sensing* date
     (confirmed against live CDSE catalogues, not just ingestion order), and
@@ -119,7 +133,11 @@ def merge(files: list[Path], out: Path, tmp_dir: Path, memory_limit: str | None 
         con.execute(f"SET memory_limit = '{memory_limit}'")
     file_list = ", ".join("'" + str(f).replace("'", "''") + "'" for f in files)
     kv = json.dumps(geo).replace("'", "''")
-    where = f"WHERE ({COLLECTION_CASE}) = '{collection}'" if collection else ""
+    conds = [f"({COLLECTION_CASE}) = '{collection}'"] if collection else []
+    if exclude:
+        pattern = "|".join(f"(?:{e})" for e in exclude).replace("'", "''")
+        conds.append(f"NOT regexp_matches(coalesce(name, ''), '{pattern}')")
+    where = "WHERE " + " AND ".join(conds) if conds else ""
     part = out.with_suffix(out.suffix + ".part")
     con.execute(f"""
         COPY (
@@ -134,16 +152,18 @@ def merge(files: list[Path], out: Path, tmp_dir: Path, memory_limit: str | None 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out-dir", type=Path, default=Path("."),
-                    help="directory for <mission>_<collection>/<year>.parquet files")
+                    help="directory for <mission>_<collection>/<YYYY>-<MM>.parquet files")
     ap.add_argument("--collection", choices=COLLECTIONS, default=None,
                     help="only merge this one collection (default: all of them)")
     ap.add_argument("--year", type=int, default=None,
-                    help="only merge this one year (default: every year with data)")
+                    help="only merge this one year (default: every month with data)")
+    ap.add_argument("--month", type=int, default=None, choices=range(1, 13), metavar="1-12",
+                    help="only merge this month (of --year, or of every year)")
     ap.add_argument("--cache", type=Path, default=Path("cache"), help="where pulled artifacts are kept")
     ap.add_argument("--keep-cache", action="store_true",
                     help="don't delete each year's pulled files afterwards (for repeated local runs)")
     ap.add_argument("--force", action="store_true",
-                    help="rebuild a year's file even if it already exists and isn't the current year")
+                    help="rebuild a month's file even if it already exists and isn't the current or previous month")
     ap.add_argument("--push", action="store_true", help="also push each result to the OCI registry")
     ap.add_argument("--upload-r2", action="store_true", help="upload each result to Cloudflare R2")
     ap.add_argument("--memory-limit", default=None, help="DuckDB memory limit, e.g. 4GB")
@@ -160,49 +180,53 @@ def main(argv: list[str] | None = None) -> int:
     if not all_tags:
         log.error("nothing to merge")
         return 1
-    by_year: dict[str, list[str]] = {}
+    by_month: dict[str, list[str]] = {}
     for t in all_tags:
-        by_year.setdefault(parse_tag(t).day[:4], []).append(t)
-    years = [str(args.year)] if args.year else sorted(by_year)
+        by_month.setdefault(parse_tag(t).day[:6], []).append(t)
+    months = [m for m in sorted(by_month)
+              if (not args.year or m[:4] == str(args.year)) and (not args.month or m[4:] == f"{args.month:02d}")]
     collections = (args.collection,) if args.collection else COLLECTIONS
-    current_year = f"{date.today():%Y}"
+    # The daily sync rewrites the last 31 days, which can reach into the previous month.
+    first_of_month = date.today().replace(day=1)
+    always = {f"{first_of_month:%Y%m}", f"{first_of_month - timedelta(days=1):%Y%m}"}
 
     for collection in collections:
         (args.out_dir / f"{cfg.mission}_{collection}").mkdir(parents=True, exist_ok=True)
 
-    for year in years:
-        outs = {c: args.out_dir / f"{cfg.mission}_{c}" / f"{year}.parquet" for c in collections}
-        todo = {c: o for c, o in outs.items() if args.force or o.name == f"{current_year}.parquet" or not o.exists()}
+    for month in months:
+        label = f"{month[:4]}-{month[4:]}"
+        outs = {c: args.out_dir / f"{cfg.mission}_{c}" / f"{label}.parquet" for c in collections}
+        todo = {c: o for c, o in outs.items() if args.force or month in always or not o.exists()}
         if not todo:
-            log.info("%s: already merged for every collection, skipping (--force to redo)", year)
+            log.info("%s: already merged for every collection, skipping (--force to redo)", label)
             continue
 
-        year_tags = by_year.get(year, [])
-        log.info("pulling %d files for %s", len(year_tags), year)
-        files = pull_all(registry, year_tags, args.cache)
+        month_tags = by_month[month]
+        log.info("pulling %d files for %s", len(month_tags), label)
+        files = pull_all(registry, month_tags, args.cache)
         try:
             for collection, out in todo.items():
-                log.info("merging %s %s (%d files)", collection, year, len(files))
-                rows = merge(files, out, args.cache, args.memory_limit, collection=collection)
+                log.info("merging %s %s (%d files)", collection, label, len(files))
+                rows = merge(files, out, args.cache, args.memory_limit, collection=collection, exclude=cfg.exclude)
                 if rows == 0:
                     out.unlink(missing_ok=True)
-                    log.info("%s %s: no rows, skipping", collection, year)
+                    log.info("%s %s: no rows, skipping", collection, label)
                     continue
                 log.info("wrote %s: %d rows", out, rows)
                 log.info("converting %s to COGP layout", out)
                 convert_to_cogp(out)
-                key = f"{cfg.mission}_{collection}/{year}.parquet"
+                key = f"{cfg.mission}_{collection}/{label}.parquet"
                 if args.push:
-                    registry.push(f"{collection}-{year}", out, {
+                    registry.push(f"{collection}-{label}", out, {
                         "org.opencontainers.image.title": key,
                         "cdsemeta.rows": str(rows),
                         "cdsemeta.files": str(len(files)),
                         "cdsemeta.collection": collection,
-                        "cdsemeta.year": year,
+                        "cdsemeta.month": label,
                         "cdsemeta.mission": cfg.mission,
                         "cdsemeta.version": __version__,
                     })
-                    log.info("pushed %s:%s-%s", cfg.oci_repo, collection, year)
+                    log.info("pushed %s:%s-%s", cfg.oci_repo, collection, label)
                 if args.upload_r2:
                     r2.upload(out, key)
         finally:

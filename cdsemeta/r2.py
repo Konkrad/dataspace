@@ -4,7 +4,7 @@ Only the aggregate outputs (merge, STAC) go here. The worker's per-day
 pushes stay on GHCR via ``registry.py`` -- unrelated code path, unchanged.
 
 Unlike the OCI registry, R2 speaks the S3 API, so a "folder" of partition
-files (see ``merge.py``'s per-year output) is directly readable by anything
+files (see ``merge.py``'s per-month output) is directly readable by anything
 that understands S3 prefixes -- DuckDB's ``read_parquet('s3://bucket/...')``,
 ``pyarrow.dataset``, etc. -- with no resolve-then-fetch dance required.
 """

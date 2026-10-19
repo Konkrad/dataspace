@@ -27,9 +27,13 @@ def download(session: requests.Session, url: str, entry: CsvEntry, dest: Path, t
     return dest
 
 
-def read_csv(path: Path) -> pd.DataFrame:
+def read_csv(path: Path, exclude: tuple[str, ...] = ()) -> pd.DataFrame:
+    """Rows with an Id, deduplicated; names matching any ``exclude`` regex
+    (``Config.exclude``) are dropped."""
     df = pd.read_csv(path, sep=";", dtype=str, keep_default_na=False, na_values=[""])
     if "Id" not in df.columns:
         raise ValueError(f"{path.name}: no 'Id' column (columns: {list(df.columns)})")
-    df = df[df["Id"].notna()].drop_duplicates(subset="Id").reset_index(drop=True)
-    return df
+    df = df[df["Id"].notna()].drop_duplicates(subset="Id")
+    if exclude:
+        df = df[~df["Name"].fillna("").str.contains("|".join(f"(?:{e})" for e in exclude), regex=True)]
+    return df.reset_index(drop=True)

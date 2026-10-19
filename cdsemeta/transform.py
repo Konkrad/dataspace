@@ -173,7 +173,8 @@ def from_odata(product: dict, csv_row: dict) -> tuple[dict, dict, shapely.Geomet
         "modification_date": parse_ts(product.get("ModificationDate")),
         "eviction_date": parse_ts(product.get("EvictionDate")),
         "online": product.get("Online"),
-        "s3_path": s3_uri(product.get("S3Path")),
+        # OData has no S3Path for some products (e.g. Sentinel-1 RAW); the CSV does.
+        "s3_path": s3_uri(product.get("S3Path") or _csv_get(csv_row, "S3Path")),
         "checksum_md5": _checksum(checksums, "MD5"),
         "checksum_blake3": _checksum(checksums, "BLAKE3"),
         "quicklook_url": quicklook,

@@ -1,7 +1,12 @@
-"""Main worker loop.
+"""Main worker loop (backfill).
 
-Work left = CSVs in the catalogue listing whose tag is not in the registry.
-Nothing else is stored, so the worker can be stopped and restarted at will.
+Work left = (platform, sensing day) CSVs in the catalogue listing that have
+no artifact in the registry yet, under any tag: the per-day tag
+(``S1A_20240101``) or a legacy one (``S1A_20240101_COPERNICUS_catalogue_*``,
+whatever generation). Each is built from OData + the CSV and pushed to the
+per-day tag. Days that exist but changed upstream are ``cdsemeta-update
+sync``'s job, so a regeneration (new file names) is no new work here. The registry is the only state, so the
+worker can be stopped and restarted at will.
 """
 
 from __future__ import annotations
@@ -13,17 +18,18 @@ import signal
 import sys
 import tempfile
 import time
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from . import __version__, csvfile, geoparquet
-from .config import COLLECTIONS, Config
+from . import csvfile, geoparquet
+from .config import COLLECTIONS, Config, before_launch
 from .http import make_session
 from .listing import CsvEntry, list_csvs
-from .naming import parquet_relpath, parse_tag, tag_for
+from .naming import day_tag_for, parquet_relpath, parse_tag, stem, tag_for
 from .odata import Blocked, ODataClient
 from .registry import Registry
 from .transform import build_table
+from .update import annotations
 
 log = logging.getLogger("cdsemeta.worker")
 
@@ -43,7 +49,7 @@ def process(entry: CsvEntry, cfg: Config, session, odata: ODataClient, work: Pat
     t0 = time.monotonic()
     csv_path = work / Path(entry.key).name
     csvfile.download(session, entry.url(cfg.csv_list_url), entry, csv_path, timeout=cfg.http_timeout)
-    df = csvfile.read_csv(csv_path)
+    df = csvfile.read_csv(csv_path, cfg.exclude)
     info = parse_tag(tag_for(entry.key))
     products = odata.fetch_day(COLLECTIONS[cfg.mission], info.platform,
                                datetime.strptime(info.day, "%Y%m%d").date(), df["Id"].tolist())
@@ -52,23 +58,26 @@ def process(entry: CsvEntry, cfg: Config, session, odata: ODataClient, work: Pat
     out.parent.mkdir(parents=True, exist_ok=True)
     geoparquet.write(table, geoms, out)
     geoparquet.check(out, len(df))
-    ann = {
-        "org.opencontainers.image.title": parquet_relpath(entry.key),
-        "eu.copernicus.csv.key": entry.key,
-        "eu.copernicus.csv.md5": entry.md5,
-        "eu.copernicus.csv.last_modified": entry.last_modified,
-        "cdsemeta.rows": str(len(df)),
-        "cdsemeta.odata_found": str(len(df) - missing),
-        "cdsemeta.odata_missing": str(missing),
-        "cdsemeta.mission": cfg.mission,
-        "cdsemeta.version": __version__,
-    }
+    ann = annotations(entry.key, len(df), missing, cfg.mission, entry.md5, entry.last_modified)
     log.info("%s: %d rows, %d not in OData, %.1fs", entry.key, len(df), missing, time.monotonic() - t0)
     return out, ann
 
 
-def todo_list(entries: list[CsvEntry], done: set[str], order: str) -> list[CsvEntry]:
-    todo = [e for e in entries if tag_for(e.key) not in done]
+def todo_list(entries: list[CsvEntry], tags: set[str], order: str) -> list[CsvEntry]:
+    """Entries without an artifact (under any tag), in (day, platform) order."""
+    have = set()
+    for t in tags:
+        info = parse_tag(t)
+        if info is not None:
+            have.add((info.platform, info.day))
+    todo = []
+    for e in entries:
+        info = parse_tag(stem(e.key))
+        if info is None:
+            log.warning("skipping %s: not a catalogue CSV name", e.key)
+            continue
+        if (info.platform, info.day) not in have:
+            todo.append(e)
     # Sort by day, then platform, so the archive fills up chronologically.
     todo.sort(key=lambda e: (Path(e.key).name.split("_")[1:2], e.key), reverse=(order == "desc"))
     return todo
@@ -85,13 +94,21 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
     blocked_wait = BLOCKED_WAIT_MIN
     while True:
         entries = list_csvs(session, cfg.csv_list_url, cfg.platforms, timeout=cfg.http_timeout)
+        early = [e for e in entries if (info := parse_tag(stem(e.key))) and before_launch(info.platform, info.day)]
+        if early:
+            log.info("skipping %d CSVs dated before their satellite's launch", len(early))
+            entries = [e for e in entries if e not in set(early)]
+        if cfg.recent_days:
+            since = f"{date.today() - timedelta(days=cfg.recent_days):%Y%m%d}"
+            entries = [e for e in entries if (info := parse_tag(stem(e.key))) is None or info.day >= since]
         if only:
-            entries = [e for e in entries if e.key == only or tag_for(e.key) == only or Path(e.key).name == only]
+            entries = [e for e in entries if e.key == only or tag_for(e.key) == only or day_tag_for(e.key) == only
+                       or Path(e.key).name == only]
             if not entries:
                 log.error("no CSV matches %r", only)
                 return 1
-        done = set() if (no_push or only) else registry.tags()
-        todo = todo_list(entries, done, cfg.order)
+        tags = set() if (no_push or only) else registry.tags()
+        todo = todo_list(entries, tags, cfg.order)
         log.info("%d CSVs listed, %d already in %s, %d to do", len(entries), len(entries) - len(todo),
                  cfg.oci_repo, len(todo))
         if dry_run:
@@ -117,6 +134,7 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
         blocked = False
         for i, entry in enumerate(todo, 1):
             work = Path(tempfile.mkdtemp(prefix="job-", dir=cfg.work_dir))
+            tag = day_tag_for(entry.key)
             try:
                 log.info("[%d/%d] %s", i, len(todo), entry.key)
                 out, ann = process(entry, cfg, session, odata, work)
@@ -126,8 +144,8 @@ def run(cfg: Config, dry_run: bool = False, only: str | None = None, no_push: bo
                     shutil.copy2(out, dest)
                     log.info("wrote %s", dest)
                 if not no_push:
-                    registry.push(tag_for(entry.key), out, ann, root=work)
-                    log.info("pushed %s:%s", cfg.oci_repo, tag_for(entry.key))
+                    registry.push(tag, out, ann, root=work)
+                    log.info("pushed %s:%s", cfg.oci_repo, tag)
                 blocked_wait = BLOCKED_WAIT_MIN
             except Stop:
                 log.info("stopping; %s was not pushed and will be redone", entry.key)
