@@ -12,9 +12,15 @@ name: Catalogue updates
 # GitHub-hosted runners have normal internet, so no IPv6/SOCKS-proxy
 # workaround as on stardust. Work goes to /mnt (the big disk on the runner).
 #
-# The schedules stay off until the GHCR_TOKEN secret (classic PAT with
-# write:packages) is set and the per-day tags are in place; until then run
-# it by hand (workflow_dispatch).
+# Pushes to GHCR with the workflow's own GITHUB_TOKEN, no PAT secret. Each
+# package (sentinel-1, sentinel-2, ...) must give this repository the Write
+# role: package settings -> Manage Actions access.
+#
+# The schedules stay off until a manual run (workflow_dispatch) has worked.
+
+permissions:
+  contents: read
+  packages: write
 
 on:
   # schedule:
@@ -56,17 +62,17 @@ jobs:
       - name: Daily (last 31 days)
         if: steps.job.outputs.job == 'daily'
         env:
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           run() { docker run --rm -v /mnt/work:/work -w /work -e MISSION=${{ matrix.mission }} \
-                    -e GHCR_USER=Konkrad -e GHCR_TOKEN "$@"; }
+                    -e GHCR_USER=${{ github.actor }} -e GHCR_TOKEN "$@"; }
           run -e ORDER=desc -e RUN_ONCE=1 -e RECENT_DAYS=31 cdsemeta
           run cdsemeta cdsemeta-update sync --work /work/sync --recent-days 31
 
       - name: Monthly (full dump)
         if: steps.job.outputs.job == 'monthly'
         env:
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           docker run --rm -v /mnt/work:/work -w /work -e MISSION=${{ matrix.mission }} \
-            -e GHCR_USER=Konkrad -e GHCR_TOKEN cdsemeta cdsemeta-update sync --work /work/sync
+            -e GHCR_USER=${{ github.actor }} -e GHCR_TOKEN cdsemeta cdsemeta-update sync --work /work/sync
