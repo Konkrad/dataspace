@@ -93,4 +93,4 @@ jobs:
             -e R2_ACCOUNT_ID -e R2_ACCESS_KEY_ID -e R2_SECRET_ACCESS_KEY -e R2_BUCKET \
             cdsemeta cdsemeta-merge \
               --out-dir /work/merge --cache /work/cache \
-              --memory-limit 4GB --upload-r2
+              --memory-limit 4GB --upload-r2 --delete-after-upload
