@@ -16,8 +16,18 @@ import os
 from pathlib import Path
 
 import boto3
+from boto3.s3.transfer import TransferConfig
 
 log = logging.getLogger("cdsemeta.r2")
+
+# R2 can expire multipart upload IDs under load. Raise the single-PUT threshold
+# to 50 MB so most monthly files go as one request; use sequential 10 MB chunks
+# for the rare larger files.
+_TRANSFER_CFG = TransferConfig(
+    multipart_threshold=50 << 20,
+    multipart_chunksize=10 << 20,
+    max_concurrency=1,
+)
 
 
 def client():
@@ -33,5 +43,5 @@ def client():
 
 def upload(path: Path, key: str, bucket: str | None = None) -> None:
     bucket = bucket or os.environ["R2_BUCKET"]
-    client().upload_file(str(path), bucket, key)
+    client().upload_file(str(path), bucket, key, Config=_TRANSFER_CFG)
     log.info("uploaded %s to s3://%s/%s", path, bucket, key)
