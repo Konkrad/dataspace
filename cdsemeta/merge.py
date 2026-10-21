@@ -159,6 +159,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="only merge this one year (default: every month with data)")
     ap.add_argument("--month", type=int, default=None, choices=range(1, 13), metavar="1-12",
                     help="only merge this month (of --year, or of every year)")
+    ap.add_argument("--start", default=None, metavar="YYYY-MM",
+                    help="skip all months before this one, e.g. 2022-11 to resume a partial run")
     ap.add_argument("--cache", type=Path, default=Path("cache"), help="where pulled artifacts are kept")
     ap.add_argument("--keep-cache", action="store_true",
                     help="don't delete each year's pulled files afterwards (for repeated local runs)")
@@ -185,8 +187,10 @@ def main(argv: list[str] | None = None) -> int:
     by_month: dict[str, list[str]] = {}
     for t in all_tags:
         by_month.setdefault(parse_tag(t).day[:6], []).append(t)
+    start = args.start.replace("-", "") if args.start else None
     months = [m for m in sorted(by_month)
-              if (not args.year or m[:4] == str(args.year)) and (not args.month or m[4:] == f"{args.month:02d}")]
+              if (not args.year or m[:4] == str(args.year)) and (not args.month or m[4:] == f"{args.month:02d}")
+              and (not start or m >= start)]
     collections = (args.collection,) if args.collection else COLLECTIONS
     # The daily sync rewrites the last 31 days, which can reach into the previous month.
     first_of_month = date.today().replace(day=1)
