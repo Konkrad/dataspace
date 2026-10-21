@@ -166,6 +166,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="rebuild a month's file even if it already exists and isn't the current or previous month")
     ap.add_argument("--push", action="store_true", help="also push each result to the OCI registry")
     ap.add_argument("--upload-r2", action="store_true", help="upload each result to Cloudflare R2")
+    ap.add_argument("--delete-after-upload", action="store_true",
+                    help="delete each local file immediately after uploading to R2 (keeps disk usage flat)")
     ap.add_argument("--memory-limit", default=None, help="DuckDB memory limit, e.g. 4GB")
     args = ap.parse_args(argv)
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper(),
@@ -229,6 +231,9 @@ def main(argv: list[str] | None = None) -> int:
                     log.info("pushed %s:%s-%s", cfg.oci_repo, collection, label)
                 if args.upload_r2:
                     r2.upload(out, key)
+                    if args.delete_after_upload:
+                        out.unlink()
+                        log.info("deleted %s after upload", out)
         finally:
             if not args.keep_cache:
                 for f in files:
