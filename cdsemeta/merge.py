@@ -221,7 +221,7 @@ def main(argv: list[str] | None = None) -> int:
                 log.info("wrote %s: %d rows", out, rows)
                 log.info("converting %s to COGP layout", out)
                 convert_to_cogp(out)
-                key = f"{cfg.mission}_{collection}/{label}.parquet"
+                key = f"{cfg.mission}-{collection}.parquet/{label}.parquet"
                 if args.push:
                     registry.push(f"{collection}-{label}", out, {
                         "org.opencontainers.image.title": key,
