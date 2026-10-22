@@ -28,5 +28,10 @@ def convert_to_cogp(path: Path, cogp_bin: str = "cogp") -> None:
     res = subprocess.run([cogp_bin, "convert", str(path), str(tmp)], capture_output=True, text=True)
     if res.returncode != 0:
         tmp.unlink(missing_ok=True)
-        raise RuntimeError(f"cogp convert failed ({res.returncode}): {res.stderr.strip() or res.stdout.strip()}")
+        msg = res.stderr.strip() or res.stdout.strip()
+        if "No space left on device" in msg:
+            raise RuntimeError(f"cogp convert failed ({res.returncode}): {msg}")
+        log.warning("cogp convert failed for %s (%s): %s -- uploading without COGP layout",
+                    path.name, res.returncode, msg[:120])
+        return
     tmp.replace(path)
