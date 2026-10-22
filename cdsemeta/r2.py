@@ -24,8 +24,8 @@ log = logging.getLogger("cdsemeta.r2")
 # to 50 MB so most monthly files go as one request; use sequential 10 MB chunks
 # for the rare larger files.
 _TRANSFER_CFG = TransferConfig(
-    multipart_threshold=50 << 20,
-    multipart_chunksize=10 << 20,
+    multipart_threshold=500 << 20,   # 500 MB: nearly all monthly files fit in one PUT
+    multipart_chunksize=50 << 20,    # 50 MB chunks for the rare larger files
     max_concurrency=1,
 )
 
