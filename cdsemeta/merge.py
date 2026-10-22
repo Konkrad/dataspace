@@ -85,7 +85,12 @@ def combined_geo(files: list[Path]) -> dict:
     bbox = [float("inf"), float("inf"), float("-inf"), float("-inf")]
     geo: dict | None = None
     for f in files:
-        meta = pq.read_schema(f).metadata or {}
+        try:
+            meta = pq.read_schema(f).metadata or {}
+        except Exception as e:
+            log.warning("skipping corrupt artifact %s: %s", f.name, e)
+            f.unlink(missing_ok=True)
+            continue
         g = json.loads(meta[b"geo"])
         col = g["columns"]["geometry"]
         types.update(col.get("geometry_types", []))
@@ -93,7 +98,7 @@ def combined_geo(files: list[Path]) -> dict:
             b = col["bbox"]
             bbox = [min(bbox[0], b[0]), min(bbox[1], b[1]), max(bbox[2], b[2]), max(bbox[3], b[3])]
         geo = geo or g
-    assert geo is not None
+    assert geo is not None, "no readable artifacts found"
     col = geo["columns"]["geometry"]
     col["geometry_types"] = sorted(types)
     if bbox[0] != float("inf"):
