@@ -282,11 +282,14 @@ def keys_by_year(catalogue: CatalogueZip, platform: str, since: str = "",
 
 
 def init_ids(cfg: Config, work: Path, tags: set[str], push: bool = True, years: list[str] | None = None,
-             zip_source: str | None = None, ids_dir: Path | None = None) -> int:
-    """First ID files from the zip, without touching any artifact: a day's
-    rows go in only if ``tags`` has its legacy tag with the zip CSV's exact
-    generation, i.e. the artifact was built from this very CSV. Every other
-    day is left out, so the first ``sync`` compares its artifact directly."""
+             zip_source: str | None = None, ids_dir: Path | None = None, all_days: bool = False) -> int:
+    """First ID files from the zip, without touching any artifact.
+
+    By default, a day's rows go in only if ``tags`` has its legacy tag with
+    the zip CSV's exact generation (i.e. the artifact was built from this
+    very CSV). With ``all_days=True``, every day in the zip is included
+    regardless -- safe when the backfill just completed with the current zip
+    and there are no legacy tags (e.g. Sentinel-3, Sentinel-5P)."""
     session = make_session()
     catalogue = CatalogueZip(zip_source, session) if zip_source else \
         CatalogueZip.for_listing(cfg.csv_list_url, session, cfg.http_timeout)
@@ -294,7 +297,7 @@ def init_ids(cfg: Config, work: Path, tags: set[str], push: bool = True, years: 
     id_files = ids.IdFiles(ids_dir or work / "ids", cfg.mission)
     for platform in cfg.platforms:
         for year, keys in sorted(keys_by_year(catalogue, platform, years=years).items()):
-            built = [k for k in keys if stem(k) in tags]
+            built = keys if all_days else [k for k in keys if stem(k) in tags]
             csv_dir = work / "csv" / platform / year
             try:
                 _, table = read_year(catalogue, built, csv_dir, cfg.exclude)
@@ -444,6 +447,9 @@ def main(argv: list[str] | None = None) -> int:
     i.add_argument("--tags", type=Path, help="registry tags, one per line (`oras repo tags …`), instead of listing them")
     i.add_argument("--ids", type=Path, help="write the ID files under this root")
     i.add_argument("--no-push", action="store_true")
+    i.add_argument("--all-days", action="store_true",
+                   help="include every day in the zip regardless of tag generation (for missions "
+                        "built with the new worker that only pushes per-day tags)")
 
     a = sub.add_parser("ids-from-artifacts", help="ID files from a local artifact tree, when the CSVs are gone")
     a.add_argument("--artifacts", type=Path, required=True, help="e.g. local-work/cache")
@@ -471,7 +477,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "init-ids":
         tags = ({t.strip() for t in args.tags.read_text().splitlines() if t.strip()} if args.tags
                 else Registry(cfg.oci_repo).tags())
-        return init_ids(cfg, args.work, tags, not args.no_push, args.year, args.zip, args.ids)
+        return init_ids(cfg, args.work, tags, not args.no_push, args.year, args.zip, args.ids,
+                        all_days=args.all_days)
     if args.cmd == "pull":
         from .merge import pull_all
         registry = Registry(cfg.oci_repo)
