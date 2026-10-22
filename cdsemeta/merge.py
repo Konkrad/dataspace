@@ -46,6 +46,8 @@ COLLECTION_CASE = """
       WHEN productType LIKE '%RAW%' THEN 'raw'
       WHEN productType LIKE 'S2MSI1C%' THEN 'l1c'
       WHEN productType LIKE 'S2MSI2A%' THEN 'l2a'
+      WHEN productType LIKE 'L1B_%' THEN 'l1b'
+      WHEN productType LIKE 'L2__%' THEN 'l2'
       WHEN productType LIKE 'OL_%' THEN 'olci'
       WHEN productType LIKE 'SL_%' THEN 'slstr'
       WHEN productType LIKE 'SR_%' THEN 'sral'
@@ -55,6 +57,7 @@ COLLECTION_CASE = """
     END
 """
 COLLECTIONS = ("grd", "slc", "ocn", "etad", "raw", "aux", "l1c", "l2a",
+               "l1b", "l2",
                "olci", "slstr", "sral", "synergy", "mwr", "other")
 
 
