@@ -30,10 +30,11 @@ log = logging.getLogger("cdsemeta.merge")
 # Bucketed from the real distinct `productType` values seen across the full
 # Sentinel-1 archive (IW_GRDH_1S, IW_GRDH_1S-COG, EW_GRDM_1S, S1..S6_GRDH_1S
 # for GRD; similarly for SLC/OCN; *_ETA__AX for ETAD; RAW and *_RAW__0S for
-# RAW; AUX_* for orbit/calibration files, which aren't SAR imagery). Also
-# splits the single combined merge into per-collection files -- the full
-# archive merged into one file measured ~9GB, uncomfortably close to GHCR's
-# 10GB per-layer limit, and only grows; GRD alone measured ~3.7GB.
+# RAW; AUX_* for orbit/calibration files, which aren't SAR imagery) and
+# Sentinel-2 (S2MSI1C, S2MSI2A; AUX_* for calibration files). Also splits the
+# single combined merge into per-collection files -- the full archive merged
+# into one file measured ~9GB, uncomfortably close to GHCR's 10GB per-layer
+# limit, and only grows; GRD alone measured ~3.7GB.
 COLLECTION_CASE = """
     CASE
       WHEN productType IS NULL THEN 'other'
@@ -43,6 +44,8 @@ COLLECTION_CASE = """
       WHEN productType LIKE '%OCN%' THEN 'ocn'
       WHEN productType LIKE '%ETA%' THEN 'etad'
       WHEN productType LIKE '%RAW%' THEN 'raw'
+      WHEN productType LIKE 'S2MSI1C%' THEN 'l1c'
+      WHEN productType LIKE 'S2MSI2A%' THEN 'l2a'
       ELSE 'other'
     END
 """
