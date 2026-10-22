@@ -46,6 +46,11 @@ COLLECTION_CASE = """
       WHEN productType LIKE '%RAW%' THEN 'raw'
       WHEN productType LIKE 'S2MSI1C%' THEN 'l1c'
       WHEN productType LIKE 'S2MSI2A%' THEN 'l2a'
+      WHEN productType LIKE 'OL\_%' ESCAPE '\' THEN 'olci'
+      WHEN productType LIKE 'SL\_%' ESCAPE '\' THEN 'slstr'
+      WHEN productType LIKE 'SR\_%' ESCAPE '\' THEN 'sral'
+      WHEN productType LIKE 'SY\_%' ESCAPE '\' THEN 'synergy'
+      WHEN productType LIKE 'MW\_%' ESCAPE '\' THEN 'mwr'
       ELSE 'other'
     END
 """
