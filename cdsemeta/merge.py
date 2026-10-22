@@ -54,7 +54,8 @@ COLLECTION_CASE = """
       ELSE 'other'
     END
 """
-COLLECTIONS = ("grd", "slc", "ocn", "etad", "raw", "aux", "other")
+COLLECTIONS = ("grd", "slc", "ocn", "etad", "raw", "aux", "l1c", "l2a",
+               "olci", "slstr", "sral", "synergy", "mwr", "other")
 
 
 def pull_all(registry: Registry, tags: list[str], cache: Path, workers: int = 8) -> list[Path]:
