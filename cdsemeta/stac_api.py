@@ -58,15 +58,26 @@ def scan(keys: list[str], public_base: str) -> list[tuple]:
     con, s3 = connect_reader()
     base = s3 or public_base.rstrip("/")
     out = []
-    for i in range(0, len(keys), 50):  # in batches: keeps each query's file list short
-        batch = keys[i:i + 50]
+    def query(batch: list[str]) -> list[tuple]:
         files = ", ".join("'" + f"{base}/{k}".replace("'", "''") + "'" for k in batch)
-        rows = con.execute(f"""
+        return con.execute(f"""
             SELECT filename, collection, count(*),
                    strftime(CAST(min(datetime) AS TIMESTAMP), '%Y-%m-%dT%H:%M:%S.%fZ'),
                    strftime(CAST(max(datetime) AS TIMESTAMP), '%Y-%m-%dT%H:%M:%S.%fZ')
             FROM read_parquet([{files}], filename = true, union_by_name = true)
             GROUP BY ALL""").fetchall()
+
+    for i in range(0, len(keys), 50):  # in batches: keeps each query's file list short
+        batch = keys[i:i + 50]
+        try:
+            rows = query(batch)
+        except duckdb.BinderException:  # none of them STAC yet (no collection column): file by file
+            rows = []
+            for key in batch:
+                try:
+                    rows += query([key])
+                except duckdb.BinderException:
+                    log.warning("%s is not STAC GeoParquet (no collection column), left out", key)
         for filename, coll, n, tmin, tmax in rows:
             key = filename[len(base) + 1:]
             folder, month = key.split("/")
