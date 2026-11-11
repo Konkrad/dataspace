@@ -342,10 +342,16 @@ missions, and on its own with `job: index`.
 Cloudflare setup on the zone of `dataspace.konrad.online` (the bucket's
 custom domain):
 
-- **Rewrite rule** (Rules → Transform Rules → Rewrite URL), so `/` and every
-  folder serve their `index.html`: when hostname is `dataspace.konrad.online`
-  and `ends_with(http.request.uri.path, "/")`, rewrite the path dynamically to
-  `concat(http.request.uri.path, "index.html")`.
+- **URL rewrite rule** "dataspace: folder index" (Rules → Transform Rules →
+  URL Rewrite Rules), so `/` and every folder serve their `index.html`: when
+  `http.host eq "dataspace.konrad.online" and ends_with(http.request.uri.path, "/")`,
+  rewrite the path dynamically to `concat(http.request.uri.path, "index.html")`.
+- **Response header rule** "dataspace: CORS on every response" (Response
+  Header Transform Rules): sets `Access-Control-Allow-Origin: *` and
+  `Access-Control-Expose-Headers`. Needed next to the bucket's CORS policy
+  because of the cache rule "dataspace: cache everything" (edge 1 day,
+  browser 4 h): the cache doesn't vary by `Origin`, so a copy cached from a
+  request without one would otherwise reach browsers without CORS headers.
 - **CORS** on the bucket, for browser apps (stac-map, shell.duckdb.org):
   `AllowedOrigins ["*"]`, methods `GET`, `HEAD`, header `range`, exposing
   `content-range`, `content-length`, `etag`, `accept-ranges`. The bucket is in
