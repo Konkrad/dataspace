@@ -1,403 +1,206 @@
-# cdsemeta – Copernicus catalogue metadata as GeoParquet
+# Copernicus Data Space catalogue as GeoParquet
 
-A small worker that turns the daily Sentinel catalogue CSVs from
-[csv.dataspace.copernicus.eu](https://csv.dataspace.copernicus.eu/) into
-GeoParquet files with **all** OData metadata, and stores them in an OCI
-registry (GHCR) with [ORAS](https://oras.land).
+The product metadata of every Sentinel-1, -2, -3 and -5P product in the
+[Copernicus Data Space Ecosystem](https://dataspace.copernicus.eu/) (CDSE), as
+GeoParquet: footprints, sensing times, orbits, product types, S3 paths,
+checksums and **every** OData attribute. One file per collection and sensing
+month, updated daily, public, no account needed.
 
-```
-CSV listing ──► CSV ids ──► OData ──► GeoParquet ──► oras push ghcr.io/konkrad/dataspace/<mission>:<platform>_<day>
-```
+**https://dataspace.konrad.online**
 
-- One package per mission, e.g. `ghcr.io/konkrad/dataspace/sentinel-1`
-  (see [Missions](#missions)).
-- One GeoParquet per (satellite, sensing day), tagged `S1A_20240101`. The file
-  inside keeps the CSV's name and folder structure: the CSV
-  `S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20261001.csv` becomes
-  `S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20261001.parquet`, so the
-  file name says which catalogue generation it was built from (also in the
-  `eu.copernicus.csv.generation` annotation). `oras pull` recreates that
-  folder tree.
-- **The tag is mutable.** CDSE regenerates the last 30 days every day at
-  03:00 UTC and every CSV on the 2nd of each month, with the generation date
-  in the file name. A changed day is updated in place under the same tag;
-  only its added/modified rows are rebuilt (see [Updates](#updates)).
-  Older artifacts were tagged with the full CSV name
-  (`S1A_20240101_COPERNICUS_catalogue_20260901`); `cdsemeta-update retag`
-  gives them their per-day tags, and the per-day tag always wins.
-- **The registry is the state.** The worker lists all CSVs and the registry
-  tags and builds whatever day is missing; `cdsemeta-update sync` finds
-  changed days through the [ID files](#updates). There is no local database,
-  so a crash or restart just continues.
-  A file is only pushed after it has been fully built and checked, so there
-  are no partial uploads.
-
-## Missions
-
-| `MISSION` | Satellites | Package |
-|---|---|---|
-| `sentinel-1` | S1A, S1B, S1C, S1D | `ghcr.io/konkrad/dataspace/sentinel-1` |
-| `sentinel-2` | S2A, S2B, S2C | `ghcr.io/konkrad/dataspace/sentinel-2` |
-| `sentinel-3` | S3A, S3B | `ghcr.io/konkrad/dataspace/sentinel-3` |
-| `sentinel-5p` | S5P | `ghcr.io/konkrad/dataspace/sentinel-5p` |
-
-All of these use the same CSV layout and header in the catalogue, so the code
-is the same for each; only `MISSION` changes. Each mission runs as its own
-container (see `docker-compose.yml`). OData attributes differ per mission
-(`cloudCover` and `tileId` for Sentinel-2, for example), and they simply become
-different columns. The table lives in `cdsemeta/config.py`.
-
-The CLMS part of the catalogue (`bio-geophysical/…`, `landcover_landuse/…`)
-has one CSV per collection rather than per day, and is not supported.
-
-## Data sources
-
-| What | Where |
-|---|---|
-| CSV files | `https://s3.waw3-1.cloudferro.com/swift/v1/CatalogueCSV/<PLATFORM>/YYYY/MM/*.csv`. This is the public Swift container behind csv.dataspace.copernicus.eu; its JSON listing gives the md5 of each file. |
-| All CSVs, zipped | `…/CatalogueCSV/CopernicusCatalogueCSV.zip` (13 GB, every mission, rebuilt daily ~03:00 UTC). Read with Range requests, so only the wanted CSVs are downloaded: S1 1.9 GB, S2 7.9 GB (vs 7.8 / 35.9 GB as single CSVs). |
-| Metadata | `https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Id eq … or …&$expand=Attributes&$expand=Assets&$expand=Locations` |
-
-For Sentinel-1, in September 2026 there were about 7,500 CSVs with roughly
-2,500 products each. One CSV takes about 30 s with the default settings, so a
-full run takes about 3 days. Sentinel-2 has many more products per day, so
-expect it to take proportionally longer.
-
-## Output columns
-
-| Column(s) | Notes |
-|---|---|
-| `id`, `name`, `s3_path`, `content_type`, `content_length`, `online` | from OData |
-| `content_start`, `content_end`, `origin_date`, `publication_date`, `modification_date`, `eviction_date` | `timestamp[us, UTC]` |
-| `ingestion_date` | from the CSV |
-| `checksum_md5`, `checksum_blake3`, `quicklook_url` | |
-| one column per OData attribute | for Sentinel-1: `orbitNumber`, `relativeOrbitNumber`, `orbitDirection`, `productType`, `polarisationChannels`, `swathIdentifier`, `timeliness`, … Types follow the OData `ValueType`. |
-| `attributes_json`, `assets_json`, `locations_json`, `checksum_json` | raw OData data, so nothing is lost |
-| `odata_found` | `false` for products listed in the CSV but unknown to OData (see below) |
-| `geometry` | WKB, OGC:CRS84, from `GeoFootprint` (falls back to `Footprint`, then the CSV `Bbox`) |
-| `bbox` | GeoParquet 1.1 bbox covering column |
-
-Rows are sorted by `content_start`.
-
-**Products not found in OData.** About 1–4% of the CSV rows were not returned
-by OData, whether you look them up by Id or by Name. They are kept as rows
-built from the CSV alone (name, S3 path, dates, size, md5, and the bbox
-polygon as geometry) with `odata_found = false`. The count is recorded in the
-`cdsemeta.odata_missing` manifest annotation. For Sentinel-1 these were almost
-all `CARD_BS` / `CARD-COH12` products, which are now left out (below).
-
-**Left out.**
-
-- Names matching `EXCLUDE` in `cdsemeta/config.py` are dropped when a CSV is
-  read. For Sentinel-1 that is the CARD products (`_CARD[-_]…$`): a prototype
-  per [sentiwiki](https://sentiwiki.copernicus.eu/web/s1-products), not shown
-  in the CDSE browser, not in OData, and responsible for nearly all the
-  monthly churn and the duplicates across satellites. ETAD stays. Artifacts
-  built before this rule can still hold CARD rows until their day is next
-  rewritten; `cdsemeta-merge` filters them out regardless.
-- CSVs dated before their satellite's launch (`LAUNCH` in the same file) are
-  skipped. The Oct 2026 dump has 1,559 S1B/S1C/S1D CSVs back to 2014 that hold
-  only copies of S1A CARD rows. Only Sentinel-1 has launch days so far;
-  Sentinel-2 has a stray 2015 CSV each for S2B (3 rows) and S2C (34 rows).
-
-## Running it
-
-1. Create a GitHub classic personal access token with `write:packages`.
-2. Set up the config:
-   ```sh
-   cp .env.example .env   # fill in GHCR_USER / GHCR_TOKEN
-   ```
-3. Build and check what is left to do:
-   ```sh
-   docker compose build
-   docker compose run --rm sentinel-1 python -m cdsemeta.worker --dry-run
-   ```
-4. Start the worker:
-   ```sh
-   docker compose up -d
-   docker compose logs -f sentinel-1
-   ```
-
-Useful one-offs:
-
-```sh
-# Process a single day into /work without pushing
-docker compose run --rm sentinel-1 python -m cdsemeta.worker \
-    --only S1A_20240101 --no-push --out /work/out
-
-# See what is in the registry
-oras repo tags ghcr.io/konkrad/dataspace/sentinel-1
-oras pull ghcr.io/konkrad/dataspace/sentinel-1:S1A_20240101 -o s1
-# -> s1/S1A/2024/01/S1A_20240101_COPERNICUS_catalogue_20261001.parquet
-```
-
-Everything goes into this repository's registry, one package per mission.
-Every push carries the annotation
-`org.opencontainers.image.source=https://github.com/konkrad/dataspace`, so GHCR
-links each package to the repo: it shows up under the repo's **Packages**, and
-access follows the repo. If a package already existed before the
-first push and isn't linked, connect it once under Package settings →
-"Connect repository".
-
-### Settings (`.env`)
-
-| Variable | Default | |
-|---|---|---|
-| `MISSION` | `sentinel-1` | set per service in `docker-compose.yml` |
-| `OCI_BASE` | `ghcr.io/konkrad/dataspace` | the package is `${OCI_BASE}/${MISSION}` |
-| `OCI_REPO` | | overrides the whole package name |
-| `GHCR_USER`, `GHCR_TOKEN` | | used for `oras login` at container start |
-| `PLATFORMS` | all of the mission's satellites | e.g. `S1C,S1D` to only do those |
-| `ODATA_BATCH` | `100` | ids per request (200 fails with HTTP 414) |
-| `ODATA_WORKERS` | `4` | parallel requests |
-| `ODATA_RPS` | `3` | maximum requests started per second |
-| `ORDER` | `asc` | `asc` = oldest day first, `desc` = newest first |
-| `POLL_INTERVAL` | `21600` | seconds to sleep after each pass |
-| `RUN_ONCE` | `0` | `1` = exit after one pass |
-| `RECENT_DAYS` | `0` | only look at days sensed in the last N days (`0` = all) |
-| `ORAS_EXTRA_ARGS` | | e.g. `--plain-http` for a local test registry |
-
-### Errors
-
-- HTTP 429 and 5xx responses, and connection errors, are retried with
-  exponential backoff that respects `Retry-After`.
-- If OData rejects a batch with some other 4xx error, the batch is split in
-  half until the bad id is isolated, and that id is treated as not found.
-- If a file still fails, the error is logged and the worker moves on. The day
-  is still missing, so the next pass retries it.
-- On SIGTERM (`docker compose stop`) the worker stops right away. The file it
-  was working on is not pushed and gets redone later.
-
-## Monthly files
-
-The merge writes one file per collection and sensing month,
-`<mission>_<collection>/<YYYY>-<MM>.parquet` (tag `<collection>-<YYYY>-<MM>`),
-so an update only rewrites the months that changed. Existing files are
-skipped except the current and previous month; use `--year`, `--month` or
-`--force` to rebuild others. Once everything is in the registry:
-
-```sh
-cdsemeta-merge --out-dir out --cache cache [--push] [--upload-r2]
-```
-
-Per month, and per collection (`grd`, `slc`, `ocn`, `etad`, `raw`, `aux`,
-`other`, bucketed from the Sentinel-1 `productType`; another mission lands in
-`other` for now), it does this:
-
-1. Pulls the newest artifact of every (platform, day) of that month into the
-   `--cache` folder. Already-pulled files are skipped, so it can be rerun.
-2. Merges them with DuckDB (`union_by_name`, so attribute columns that only
-   some product types have are fine), leaving out names matching the
-   mission's `EXCLUDE`. There is no explicit sort: the files arrive in
-   (day, platform) order and each is already sorted by `content_start`.
-3. Writes GeoParquet metadata.
-4. Reorders it into a [COGP](https://github.com/Kanahiro/cloud-optimized-geoparquet)
-   layout with the `cogp` CLI (vendored in the image like `oras`), so viewers
-   can progressively load it. A COGP file is still ordinary GeoParquet, so
-   this is transparent to non-COGP-aware readers.
-5. With `--push`, pushes the file to the registry as `<collection>-<YYYY>-<MM>`;
-   with `--upload-r2`, uploads it to Cloudflare R2 (`R2_ACCOUNT_ID`,
-   `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`) under the same
-   `<mission>_<collection>/<YYYY>-<MM>.parquet` key.
-
-Use `--memory-limit 4GB` on small machines.
-
-## Updates
-
-CDSE regenerates every CSV on the 2nd of each month, and the last 30 days
-daily. A regeneration changes few rows of most days. Measured for
-Sentinel-1, Sept artifacts vs the Oct dump: 2014–2025 changed on 5,590 of
-~7,100 days, by 52k added and 22k modified rows out of 13.5M, almost all
-CSV-only `CARD_BS`; the whole archive up to 2025 needed 10 OData lookups.
-Removals are mostly the temporary orbit files (`AUX_RESORB`/`PREORB`/
-`MOEORB`), which CDSE deletes ~3–4 months after the sensing day. So a
-changed day is updated per product, not rebuilt. With CARD left out, the first
-Sentinel-1 sync touched 218 of 7,548 days.
-
-**ID files.** Next to the per-day data, one small Parquet per platform and
-year, `<mission>_ids/<PLATFORM>/<year>.parquet` (tag `ids-<year>-<s1>-<s1a>`,
-e.g. `ids-2024-s1-s1a`), with three columns:
-
-| Column | From | |
-|---|---|---|
-| `Name` | the CSV | the product name: unique like `Id`, and smaller |
-| `ModificationDate` | the CSV | a changed product gets a new one (true for all 21,866 modified rows in Sept→Oct) |
-| `day` | the CSV's file name | needed to find the day file of a removed product; the name doesn't say it reliably (AUX files carry their creation date first, S5P orbits crossing midnight the previous day) |
-
-About 15 MB per platform-year for Sentinel-1 (S1A 2024: 1.27M rows).
-
-**`cdsemeta-update sync`**, per platform and year:
-
-1. stream that year's CSVs out of the catalogue zip;
-2. diff their `(Name, ModificationDate, day)` against the ID file: a day
-   with any added, removed or modified name is looked at;
-3. pull the day's artifact and compare it with the CSV by name: drop names
-   the CSV no longer lists, rebuild added names and names with a new
-   `ModificationDate`, keep every other row as it is. OData is only asked
-   about rows that can be in it (not `CARD_BS`/`CARD-COH12`, not rows that
-   were already CSV-only), all of a chunk of 200 days together;
-4. push the day to its per-day tag; once every day of the platform-year went
-   through, save and push the new ID file. If a day failed, the ID file is
-   left as it was, so a rerun looks at the same days again.
-
-Days without an artifact are left to the worker. Without ID files, the first
-run compares every day's artifact with its CSV (one pull per day); S1A 2024
-took under a minute with local artifacts. Better to create the ID files first
-(below).
-
-```sh
-cdsemeta-update sync                      # monthly: everything
-cdsemeta-update sync --recent-days 31     # daily: only the regenerated recent days
-cdsemeta-update sync --dry-run --no-push --artifacts cache --ids ids   # only count the days it would check
-cdsemeta-update sync --year 2024 --artifacts cache --ids ids --out out --no-push   # local run, nothing pushed
-```
-
-With `--ids <dir>` the ID files are read from and written to that folder
-instead of the registry (they are still pushed unless `--no-push`).
-
-If CDSE rewrites the zip during a run (every read is pinned to its ETag),
-the run stops with `ZipChanged`; just start it again.
-
-### Moving to per-day tags
-
-Needs `oras` logged in to GHCR (e.g. inside the image, with `GHCR_TOKEN`).
-
-- **The worker** counts a day as done if it has *any* tag, per-day or legacy
-  of whatever generation, so a full dump is no new work for it. A worker
-  from before per-day tags compares exact file names and would start the
-  backfill over after a dump, so redeploy it before the 2nd.
-- **Retag** only adds tags (no upload, no CDSE calls), so it is safe while a
-  backfill runs. Days pushed by an old worker afterwards get theirs on the
-  next `retag`.
-- **First ID files**, two ways:
-  - `init-ids` reads the CSVs from the zip, and takes a day only if its
-    artifact was built from exactly that CSV (a legacy tag with the same
-    generation). Run it while the artifacts' dump is still the current one.
-    It needs only the tag list, no artifacts. Days it can't vouch for are
-    left out, and the first `sync` compares those directly.
-  - `ids-from-artifacts` reads a local artifact tree (`cdsemeta-update
-    pull --cache <dir>`) and takes each day's `name` and `modification_date`,
-    whatever CSV it came from. It leaves out names the mission excludes, so
-    `sync` doesn't rewrite every day just to drop them. Use it when the CSVs
-    an artifact was built from are gone (Sentinel-1: Sept artifacts, Oct
-    zip).
-- **New missions** are built by a worker that only pushes per-day tags, which
-  carry no generation, so `init-ids` finds nothing for them. Use
-  `ids-from-artifacts`, or accept one pull per day on the first `sync`.
-
-```sh
-MISSION=sentinel-1 cdsemeta-update retag --dry-run && MISSION=sentinel-1 cdsemeta-update retag
-MISSION=sentinel-1 cdsemeta-update ids-from-artifacts --artifacts cache --ids ids --push
-MISSION=sentinel-2 cdsemeta-update init-ids --ids ids   # while the zip's CSVs are the ones the artifacts came from
-MISSION=sentinel-1 cdsemeta-update sync --ids ids       # then sync reads and updates only the changed days
-```
-
-## STAC GeoParquet
-
-```sh
-cdsemeta-stac out/sentinel-1_grd/2024-05.parquet --collection grd \
-    --out out/sentinel-1_grd_stac/2024-05.parquet
-```
-
-Not yet adapted to the monthly files: it handles one file at a time, always
-needs `--collection` (the file name no longer says it), has no R2 upload, and
-`--push` writes a tag with today's date, so two months pushed on the same
-day would overwrite each other. Every row's STAC `collection` is the mission
-(`sentinel-1`), not `grd`.
-
-Maps cdsemeta's raw OData attribute columns (`orbitNumber`, `orbitDirection`,
-`polarisationChannels`, `productType`, ...) into the STAC properties CDSE's
-own STAC API uses (https://stac.dataspace.copernicus.eu/), producing a
-[STAC GeoParquet](https://github.com/radiantearth/stac-geoparquet-spec) file:
-the `sar`/`sat`/`product`/`processing`/`eopf` STAC extensions, `id`/
-`datetime`/`collection`/`links`/`assets`. Each `assets.data.href` is the
-product's `s3://eodata/...` directory (cdsemeta only has the product-level S3
-path, not individual measurement files). Only mapped when the mission's
-attribute columns are actually present, so it degrades gracefully for
-missions other than Sentinel-1 — the mapping itself has only been verified
-against Sentinel-1.
-
-Like the merged file, this is run through `cogp convert` (rerun on this file
-specifically, since adding columns after a COGP conversion would leave its
-`geo.lod` metadata pointing at stale row groups) and pushed as its own tag,
-`stac-YYYYMMDD`.
-
-## Public access
-
-The R2 bucket is public at `https://dataspace.konrad.online`. The monthly
-files are `<mission>-<collection>.parquet/<YYYY-MM>.parquet`. R2 does not list
-a bucket, so `cdsemeta-index` lists it over the S3 API and uploads, next to
-the data:
-
-| File | For |
-|---|---|
-| `index.html` | the landing page: every collection, usage examples |
-| `<mission>-<collection>.parquet/index.html` | the months of one collection; also lets `rclone`'s http backend and `wget -r` mirror without a key |
-| `files.txt` | one URL per line, for `wget -i` / `aria2c -i` |
-| `files.tsv` | URL, size, ETag, last-modified, for incremental mirroring |
-| `dataspace.duckdb` | a view per collection (`sentinel_1_grd`, ...) over the HTTPS URLs, plus the tables `datasets` and `files` |
-
-```sh
-cdsemeta-index --out-dir index               # write locally (needs R2_* to list the bucket)
-cdsemeta-index --out-dir index --upload-r2   # and upload
-```
-
-Building `dataspace.duckdb` reads every file's schema over the public URL
-(views use `union_by_name`, as months can differ in OData attributes);
-`--no-duckdb` skips it. The workflow runs it as its last job, after all
-missions, and on its own with `job: index`.
-
-Using it:
+Query it in place with DuckDB, Python, QGIS or anything that reads Parquet
+over HTTP, or download all of it. Only the parts of a file a query needs are
+fetched.
 
 ```sql
 ATTACH 'https://dataspace.konrad.online/dataspace.duckdb' AS ds (READ_ONLY);
-FROM ds.datasets;
-SELECT name, content_start FROM ds.sentinel_1_grd
+
+-- Sentinel-1 GRD scenes over Berlin in May 2024
+SELECT name, content_start, orbitDirection, s3_path
+FROM ds.sentinel_1_grd
 WHERE content_start >= '2024-05-01' AND content_start < '2024-06-01'
   AND bbox.xmin < 13.8 AND bbox.xmax > 13.0 AND bbox.ymin < 52.7 AND bbox.ymax > 52.3;
 ```
 
+## Collections
+
+| Mission | Satellites | Collections |
+|---|---|---|
+| Sentinel-1 | S1A, S1B, S1C, S1D | `grd`, `slc`, `ocn`, `etad`, `raw`, `aux`, `other` |
+| Sentinel-2 | S2A, S2B, S2C | `l1c`, `l2a`, `aux`, `other` |
+| Sentinel-3 | S3A, S3B | `olci`, `slstr`, `sral`, `synergy`, `mwr`, `aux`, `other` |
+| Sentinel-5P | S5P | `l1b`, `l2`, `aux`, `other` |
+
+Collections are grouped by `productType`: `grd` holds every GRD product type
+(`IW_GRDH_1S`, `EW_GRDM_1S`, ...), `l2a` is `S2MSI2A`, `olci` is every `OL_*`
+type, `l2` is every `L2__*` type, `aux` the auxiliary files (orbits,
+calibration), `other` whatever fits nowhere else. The landing page lists what
+exists, with months, file counts and sizes.
+
+## Files
+
+```
+https://dataspace.konrad.online/<mission>-<collection>.parquet/<YYYY-MM>.parquet
+https://dataspace.konrad.online/sentinel-2-l2a.parquet/2024-05.parquet
+```
+
+The month is the sensing month (`content_start`, UTC). Each file is
+[GeoParquet](https://geoparquet.org/) 1.1 with a `bbox` covering column,
+written in the [Cloud-Optimized GeoParquet](https://github.com/Kanahiro/cloud-optimized-geoparquet)
+layout, so map viewers can load it progressively; to any other reader it is
+ordinary GeoParquet.
+
+Next to the data:
+
+| File | What |
+|---|---|
+| [`/`](https://dataspace.konrad.online/) | landing page: every collection, with links to its months |
+| `<mission>-<collection>.parquet/` | the months of one collection |
+| [`dataspace.duckdb`](https://dataspace.konrad.online/dataspace.duckdb) | a DuckDB catalogue: a view per collection (`sentinel_1_grd`, `sentinel_2_l2a`, ...), plus the tables `datasets` and `files` |
+| [`files.txt`](https://dataspace.konrad.online/files.txt) | every file's URL, one per line |
+| [`files.tsv`](https://dataspace.konrad.online/files.tsv) | URL, size, ETag and last-modified of every file |
+
+## Access
+
+### DuckDB
+
+```sql
+ATTACH 'https://dataspace.konrad.online/dataspace.duckdb' AS ds (READ_ONLY);
+SHOW ALL TABLES;
+FROM ds.datasets;                          -- collections, months, sizes
+
+-- Sentinel-2 L2A over an area, low cloud cover
+SELECT name, content_start, cloudCover, s3_path
+FROM ds.sentinel_2_l2a
+WHERE content_start >= '2024-06-01' AND content_start < '2024-09-01'
+  AND cloudCover < 20
+  AND bbox.xmin < 13.8 AND bbox.xmax > 13.0 AND bbox.ymin < 52.7 AND bbox.ymax > 52.3;
+
+-- one month directly, without the catalogue
+SELECT count(*) FROM 'https://dataspace.konrad.online/sentinel-1-grd.parquet/2024-05.parquet';
+```
+
+Filter on `content_start` so only the matching months are read, and on
+`bbox` so only the matching parts of them. To find a product by name, its
+sensing date is in the name, so read that month:
+
+```sql
+FROM 'https://dataspace.konrad.online/sentinel-1-grd.parquet/2016-10.parquet'
+WHERE name = 'S1A_IW_GRDH_1SDV_20161001T002657_20161001T002726_013289_0152C9_731D_COG.SAFE';
+```
+
+A local copy of a collection:
+
+```sql
+COPY (FROM ds.sentinel_1_grd WHERE content_start >= '2024-01-01')
+TO 's1_grd_2024.parquet';
+```
+
+### Python
+
+```python
+import duckdb
+
+con = duckdb.connect()
+con.sql("ATTACH 'https://dataspace.konrad.online/dataspace.duckdb' AS ds (READ_ONLY)")
+df = con.sql("FROM ds.sentinel_1_grd WHERE content_start >= '2024-05-01' LIMIT 1000").df()
+```
+
+```python
+import geopandas as gpd
+
+gdf = gpd.read_parquet("https://dataspace.konrad.online/sentinel-1-grd.parquet/2024-05.parquet")
+```
+
+Several months without the catalogue, since the file names are predictable:
+
+```python
+import pandas as pd
+
+base = "https://dataspace.konrad.online/sentinel-1-grd.parquet"
+months = pd.period_range("2024-01", "2024-06", freq="M").strftime("%Y-%m")
+duckdb.sql(f"SELECT count(*) FROM read_parquet({[f'{base}/{m}.parquet' for m in months]})")
+```
+
+### QGIS and GDAL
+
+Layer → Add Layer → Add Vector Layer → Protocol: HTTP(S), with a file's URL. Or:
+
 ```sh
-rclone sync --http-url https://dataspace.konrad.online :http: ./dataspace   # everything, incremental
+ogrinfo -so /vsicurl/https://dataspace.konrad.online/sentinel-1-grd.parquet/2024-05.parquet
+```
+
+### In the browser
+
+The bucket allows cross-origin requests, so browser tools such as
+[shell.duckdb.org](https://shell.duckdb.org/) can read the files directly.
+
+### Download
+
+Everything, or one collection, with [rclone](https://rclone.org/). Rerunning
+fetches only what changed:
+
+```sh
+rclone sync --http-url https://dataspace.konrad.online :http: ./dataspace
+rclone sync --http-url https://dataspace.konrad.online/sentinel-2-l2a.parquet/ :http: ./dataspace/sentinel-2-l2a.parquet
+```
+
+Or from the file list:
+
+```sh
 wget -x -nH -N -i https://dataspace.konrad.online/files.txt
+aria2c -x 4 -j 4 --auto-file-renaming=false -i https://dataspace.konrad.online/files.txt
 ```
 
-Local tools (DuckDB, Python, GDAL, rclone, wget) need nothing more. Cloudflare
-setup on the zone:
+`files.tsv` has each file's ETag and last-modified, to find what changed
+since a previous download.
 
-- **Rewrite rule** (Rules → Transform Rules → Rewrite URL), so `/` and every
-  folder serve their `index.html`: when hostname is `dataspace.konrad.online`
-  and `ends_with(http.request.uri.path, "/")`, rewrite the path dynamically to
-  `concat(http.request.uri.path, "index.html")`.
-- **CORS** on the bucket, for browser apps (stac-map, shell.duckdb.org):
-  `AllowedOrigins ["*"]`, methods `GET`, `HEAD`, header `range`, exposing
-  `content-range`, `content-length`, `etag`, `accept-ranges`.
-- **Rate limiting:** Parquet readers make many small range requests (a few per
-  file and row group), and `rclone` one per file. A limit of about 60
-  requests per 10 s per IP (seen in Nov 2026) blocks ordinary DuckDB queries
-  with 429; keep any rule on this host well above that.
+## Columns
 
-## Deploying and scheduled updates
+| Column(s) | Notes |
+|---|---|
+| `id`, `name` | the CDSE product id and name |
+| `s3_path` | the product in CDSE's `s3://eodata/...` |
+| `content_start`, `content_end` | sensing start and end, `timestamp with time zone`, UTC |
+| `origin_date`, `publication_date`, `modification_date`, `eviction_date`, `ingestion_date` | |
+| `content_type`, `content_length`, `online` | |
+| `checksum_md5`, `checksum_blake3`, `quicklook_url` | |
+| one column per OData attribute | e.g. Sentinel-1: `orbitNumber`, `relativeOrbitNumber`, `orbitDirection`, `productType`, `polarisationChannels`, `swathIdentifier`, `timeliness`; Sentinel-2: `cloudCover`, `tileId`, ... Types follow OData. Columns differ per mission and can differ between months. |
+| `attributes_json`, `assets_json`, `locations_json`, `checksum_json` | the raw OData records, so nothing is lost |
+| `odata_found` | `false` for products in the CDSE catalogue CSVs that OData doesn't return |
+| `geometry` | the footprint, WKB, OGC:CRS84 (from `GeoFootprint`, else `Footprint`, else the CSV's bbox) |
+| `bbox` | `xmin`, `ymin`, `xmax`, `ymax` of the footprint, for fast spatial filters |
 
-- **Backfill worker:** Kamal, one mission at a time on a small host. Copy
-  `kamal-template.yml` to `config/deploy.yml` (git-ignored), fill in the
-  placeholders and set `MISSION`; to move to the next mission, change
-  `MISSION` and run `kamal deploy`. Kamal builds from the committed git state,
-  so commit first. The worker stops itself when nothing is left to do.
-- **Updates:** `.github/workflows/worker.yml` runs, per mission (a matrix of
-  `sentinel-1`, `sentinel-2`, `sentinel-3` and `sentinel-5p`, one at a time), the daily job (the worker for
-  the last 31 days, then `sync --recent-days 31`) and the monthly job (a full
-  `sync`). It pushes with the workflow's own `GITHUB_TOKEN`, so every package
-  needs this repository under Package settings → Manage Actions access with
-  the Write role. Daily at 06:00 UTC, monthly on the 2nd at 12:00 UTC;
-  after the sync, each mission's monthly files are merged and uploaded to R2,
-  and a last job rebuilds the public index (`cdsemeta-index`, see
-  [Public access](#public-access)); `job: index` runs only that. Add a
-  mission to the matrix once its backfill is done and it has ID files.
+## Freshness
 
-## Development
+CDSE regenerates its catalogue for the last 30 days every day, and for the
+whole archive on the 2nd of each month. This dataset follows: daily at
+06:00 UTC for the recent days, and in full after the 2nd. Changed months are
+replaced in place under the same URL, so a file's ETag tells whether it
+changed.
 
-```sh
-pip install -e '.[test]'
-pytest
-```
+## What is left out
+
+- **CARD products** of Sentinel-1 (`CARD_BS`, `CARD-COH12`): a prototype,
+  not in the CDSE browser or OData. ETAD stays.
+- **Products not in OData:** about 1–4% of the products the CDSE catalogue
+  CSVs list are not returned by OData. They are kept, built from the CSV
+  alone (name, S3 path, dates, size, md5, bbox as geometry), with
+  `odata_found = false`.
+- **CLMS** (Copernicus Land Monitoring Service) collections are not included.
+
+## Sources and licence
+
+Built from the CDSE catalogue CSVs at
+[csv.dataspace.copernicus.eu](https://csv.dataspace.copernicus.eu/) and the
+[CDSE OData API](https://documentation.dataspace.copernicus.eu/APIs/OData.html).
+Copernicus Sentinel data and metadata are free and open under the
+[Copernicus data policy](https://dataspace.copernicus.eu/terms-and-conditions);
+please credit "Contains modified Copernicus Sentinel data [year]".
+
+This is an independent project, not run by ESA or the European Commission.
+
+## Contributing
+
+How the files are built (the worker, the update and merge steps, the
+schedule, the public index) is in [CONTRIBUTING.md](CONTRIBUTING.md).

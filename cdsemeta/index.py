@@ -192,7 +192,8 @@ def root_html(datasets: list[Dataset], base: str, generated: datetime) -> str:
 <p class="muted">Product metadata of the Sentinel missions from the
 <a href="https://dataspace.copernicus.eu/">Copernicus Data Space Ecosystem</a>,
 as GeoParquet, one file per collection and sensing month. Updated daily.
-{nfiles} files, {human(total)}. Generated {generated:%Y-%m-%d %H:%M} UTC.</p>
+{nfiles} files, {human(total)}. Generated {generated:%Y-%m-%d %H:%M} UTC.
+Columns, collections and more examples: <a href="https://github.com/Konkrad/dataspace#readme">documentation</a>.</p>
 
 <h2>Collections</h2>
 <div class="scroll"><table>
