@@ -322,6 +322,61 @@ specifically, since adding columns after a COGP conversion would leave its
 `geo.lod` metadata pointing at stale row groups) and pushed as its own tag,
 `stac-YYYYMMDD`.
 
+## Public access
+
+The R2 bucket is public at `https://dataspace.konrad.online`. The monthly
+files are `<mission>-<collection>.parquet/<YYYY-MM>.parquet`. R2 does not list
+a bucket, so `cdsemeta-index` lists it over the S3 API and uploads, next to
+the data:
+
+| File | For |
+|---|---|
+| `index.html` | the landing page: every collection, usage examples |
+| `<mission>-<collection>.parquet/index.html` | the months of one collection; also lets `rclone`'s http backend and `wget -r` mirror without a key |
+| `files.txt` | one URL per line, for `wget -i` / `aria2c -i` |
+| `files.tsv` | URL, size, ETag, last-modified, for incremental mirroring |
+| `dataspace.duckdb` | a view per collection (`sentinel_1_grd`, ...) over the HTTPS URLs, plus the tables `datasets` and `files` |
+
+```sh
+cdsemeta-index --out-dir index               # write locally (needs R2_* to list the bucket)
+cdsemeta-index --out-dir index --upload-r2   # and upload
+```
+
+Building `dataspace.duckdb` reads every file's schema over the public URL
+(views use `union_by_name`, as months can differ in OData attributes);
+`--no-duckdb` skips it. The workflow runs it as its last job, after all
+missions, and on its own with `job: index`.
+
+Using it:
+
+```sql
+ATTACH 'https://dataspace.konrad.online/dataspace.duckdb' AS ds (READ_ONLY);
+FROM ds.datasets;
+SELECT name, content_start FROM ds.sentinel_1_grd
+WHERE content_start >= '2024-05-01' AND content_start < '2024-06-01'
+  AND bbox.xmin < 13.8 AND bbox.xmax > 13.0 AND bbox.ymin < 52.7 AND bbox.ymax > 52.3;
+```
+
+```sh
+rclone sync --http-url https://dataspace.konrad.online :http: ./dataspace   # everything, incremental
+wget -x -nH -N -i https://dataspace.konrad.online/files.txt
+```
+
+Local tools (DuckDB, Python, GDAL, rclone, wget) need nothing more. Cloudflare
+setup on the zone:
+
+- **Rewrite rule** (Rules → Transform Rules → Rewrite URL), so `/` and every
+  folder serve their `index.html`: when hostname is `dataspace.konrad.online`
+  and `ends_with(http.request.uri.path, "/")`, rewrite the path dynamically to
+  `concat(http.request.uri.path, "index.html")`.
+- **CORS** on the bucket, for browser apps (stac-map, shell.duckdb.org):
+  `AllowedOrigins ["*"]`, methods `GET`, `HEAD`, header `range`, exposing
+  `content-range`, `content-length`, `etag`, `accept-ranges`.
+- **Rate limiting:** Parquet readers make many small range requests (a few per
+  file and row group), and `rclone` one per file. A limit of about 60
+  requests per 10 s per IP (seen in Nov 2026) blocks ordinary DuckDB queries
+  with 429; keep any rule on this host well above that.
+
 ## Deploying and scheduled updates
 
 - **Backfill worker:** Kamal, one mission at a time on a small host. Copy
@@ -335,8 +390,10 @@ specifically, since adding columns after a COGP conversion would leave its
   `sync`). It pushes with the workflow's own `GITHUB_TOKEN`, so every package
   needs this repository under Package settings → Manage Actions access with
   the Write role. Daily at 06:00 UTC, monthly on the 2nd at 12:00 UTC;
-  after the sync, each mission's monthly files are merged and uploaded to R2. Add a mission to the matrix once its backfill is done and it
-  has ID files.
+  after the sync, each mission's monthly files are merged and uploaded to R2,
+  and a last job rebuilds the public index (`cdsemeta-index`, see
+  [Public access](#public-access)); `job: index` runs only that. Add a
+  mission to the matrix once its backfill is done and it has ID files.
 
 ## Development
 

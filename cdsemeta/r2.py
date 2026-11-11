@@ -41,7 +41,22 @@ def client():
     )
 
 
-def upload(path: Path, key: str, bucket: str | None = None) -> None:
+def upload(path: Path, key: str, bucket: str | None = None, *,
+           content_type: str | None = None, cache_control: str | None = None) -> None:
     bucket = bucket or os.environ["R2_BUCKET"]
-    client().upload_file(str(path), bucket, key, Config=_TRANSFER_CFG)
+    extra = {}
+    if content_type:
+        extra["ContentType"] = content_type
+    if cache_control:
+        extra["CacheControl"] = cache_control
+    client().upload_file(str(path), bucket, key, Config=_TRANSFER_CFG, ExtraArgs=extra or None)
     log.info("uploaded %s to s3://%s/%s", path, bucket, key)
+
+
+def list_objects(bucket: str | None = None, prefix: str = "") -> list[dict]:
+    """Every object in the bucket: dicts with Key, Size, ETag, LastModified."""
+    bucket = bucket or os.environ["R2_BUCKET"]
+    out: list[dict] = []
+    for page in client().get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=prefix):
+        out.extend(page.get("Contents", []))
+    return out
