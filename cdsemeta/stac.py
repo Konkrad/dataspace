@@ -296,8 +296,9 @@ def convert(src: str | Path, out: Path, bucket_id: str, *, memory_limit: str | N
     con.execute("SET preserve_insertion_order = true")
     if memory_limit:
         con.execute(f"SET memory_limit = '{memory_limit}'")
-    if tmp_dir:
-        con.execute(f"SET temp_directory = '{tmp_dir}'")
+    if tmp_dir:  # one per process: parallel conversions sharing one clobber each other's spill files
+        spill = Path(tmp_dir) / f"duckdb-tmp-{os.getpid()}"
+        con.execute(f"SET temp_directory = {_q(str(spill))}")
     src_sql = _q(str(src))
     columns = {r[0] for r in con.execute(f"DESCRIBE SELECT * FROM read_parquet({src_sql})").fetchall()}
     if "stac_version" in columns:
