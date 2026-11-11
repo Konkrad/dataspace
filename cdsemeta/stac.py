@@ -306,7 +306,7 @@ def convert(src: str | Path, out: Path, bucket_id: str, *, memory_limit: str | N
     select, _ = select_sql(columns - RAW_ONLY, mission, bucket_id)
     stac_meta = {"version": STAC_GEOPARQUET_VERSION}
     kv = {"geo": json.dumps(geo), "stac-geoparquet": json.dumps(stac_meta)}
-    kv_sql = "{" + ", ".join(f"{k.replace('-', '_')}: {_q(v)}" for k, v in kv.items()) + "}"
+    kv_sql = "{" + ", ".join(f"{_q(k)}: {_q(v)}" for k, v in kv.items()) + "}"
     out.parent.mkdir(parents=True, exist_ok=True)
     part = out.with_suffix(out.suffix + ".part")
     con.execute(f"""
@@ -314,26 +314,10 @@ def convert(src: str | Path, out: Path, bucket_id: str, *, memory_limit: str | N
         TO {_q(str(part))} (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE 100000, KV_METADATA {kv_sql})
     """)
     con.close()
-    _rename_kv(part, {"stac_geoparquet": "stac-geoparquet"})
     part.replace(out)
     if cogp:
         convert_to_cogp(out)
     return pq.ParquetFile(out).metadata.num_rows
-
-
-def _rename_kv(path: Path, renames: dict[str, str]) -> None:
-    """DuckDB's KV_METADATA keys are identifiers (no '-'); fix them up in the footer."""
-    pf = pq.ParquetFile(path)
-    meta = dict(pf.metadata.metadata or {})
-    if not any(k.encode() in meta for k in renames):
-        return
-    table = pf.read()
-    for old, new in renames.items():
-        if old.encode() in meta:
-            meta[new.encode()] = meta.pop(old.encode())
-    tmp = path.with_suffix(path.suffix + ".kv")
-    pq.write_table(table.replace_schema_metadata(meta), tmp, compression="zstd", row_group_size=100_000)
-    tmp.replace(path)
 
 
 def main(argv: list[str] | None = None) -> int:
