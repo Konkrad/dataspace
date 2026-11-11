@@ -349,10 +349,13 @@ custom domain):
 - **CORS** on the bucket, for browser apps (stac-map, shell.duckdb.org):
   `AllowedOrigins ["*"]`, methods `GET`, `HEAD`, header `range`, exposing
   `content-range`, `content-length`, `etag`, `accept-ranges`.
-- **Rate limiting:** Parquet readers make many small range requests (a few per
-  file and row group), and `rclone` one per file. A limit of about 60
-  requests per 10 s per IP (seen in Nov 2026) blocks ordinary DuckDB queries
-  with 429; keep any rule on this host well above that.
+- **Rate limiting:** the rule "dataspace: 1000 req / 10s per IP" (Security →
+  WAF → Rate limiting rules; the free plan allows one rule and only a 10 s
+  period) blocks an IP for 10 s above 1,000 requests. Parquet readers make
+  many small range requests (a few per file and row group), and `rclone` one
+  per file: the earlier 50 per 10 s blocked ordinary DuckDB queries with 429.
+- **Read-only:** the custom rule "dataspace: read-only (GET/HEAD)" blocks
+  every other method.
 
 ## Deploying and scheduled updates
 
