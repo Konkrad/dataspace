@@ -279,6 +279,10 @@ def select_sql(columns: set[str], mission: str, bucket_id: str) -> tuple[str, li
     return ",\n  ".join(fields), list(MISSION_EXTENSIONS[mission])
 
 
+class AlreadyStac(Exception):
+    """The source is already STAC GeoParquet."""
+
+
 def mission_of(bucket_id: str) -> str:
     """``sentinel-5p-l2`` -> ``sentinel-5p``."""
     return bucket_id.rsplit("-", 1)[0]
@@ -296,6 +300,8 @@ def convert(src: str | Path, out: Path, bucket_id: str, *, memory_limit: str | N
         con.execute(f"SET temp_directory = '{tmp_dir}'")
     src_sql = _q(str(src))
     columns = {r[0] for r in con.execute(f"DESCRIBE SELECT * FROM read_parquet({src_sql})").fetchall()}
+    if "stac_version" in columns:
+        raise AlreadyStac(str(src))
     geo_raw = con.execute(
         f"SELECT value FROM parquet_kv_metadata({src_sql}) WHERE decode(key) = 'geo'").fetchone()
     if geo_raw is None:
@@ -339,6 +345,9 @@ def main(argv: list[str] | None = None) -> int:
         out = args.out_dir / key
         try:
             rows = convert(src, out, bucket_id, memory_limit=args.memory_limit, tmp_dir=args.out_dir)
+        except AlreadyStac:
+            log.info("%s: already STAC, skipped", key)
+            continue
         except Exception as e:  # keep going; the month stays as it was
             log.error("%s: %s", key, e)
             failed += 1
