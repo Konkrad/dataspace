@@ -48,9 +48,9 @@ def test_write_all(tmp_path):
     assert tsv[0] == "url\tsize\tetag\tlast_modified" and len(tsv) == 3
 
     root = (out / "index.html").read_text()
-    assert 'href="sentinel-1-grd.parquet/"' in root and "2024-05 – 2024-06" in root
+    assert 'href="/sentinel-1-grd.parquet/"' in root and "2024-05 – 2024-06" in root
     folder = (out / "sentinel-1-grd.parquet/index.html").read_text()
-    assert 'href="2024-06.parquet"' in folder and 'href="../"' in folder
+    assert 'href="2024-06.parquet"' in folder and 'href="/about/"' in folder
 
     con = duckdb.connect()
     con.execute(f"ATTACH '{out / 'dataspace.duckdb'}' AS ds (READ_ONLY)")
@@ -86,3 +86,42 @@ def test_write_all_with_viewer(tmp_path):
                                 "datasets": [{"id": "sentinel-1-grd", "months": ["2024-05", "2024-06"]}]}
     # Viewer files stay out of the download lists.
     assert "_viewer" not in (out / "files.txt").read_text()
+
+
+def test_write_all_with_browser(tmp_path):
+    dist = tmp_path / "browser"
+    (dist / "assets").mkdir(parents=True)
+    (dist / "index.html").write_text("<html><head></head><body><noscript>js</noscript></body></html>")
+    (dist / "assets/index-abc.js").write_text("x")
+    (dist / "assets/index-abc.js.map").write_text("{}")
+    (dist / "mockServiceWorker.js").write_text("x")
+    ds = index.datasets_from_objects([_obj("sentinel-1-grd.parquet/2024-05.parquet")])
+    collections = {"collections": [{"id": "sentinel-1-grd", "cdse:files": {"sentinel-1-grd": ["2024-05"]}}]}
+    out = tmp_path / "out"
+    items = index.write_all(ds, "https://example.org", out, duckdb_file=False, browser_dist=dist,
+                            collections=collections)
+    by_key = {k: cache for _, k, _, cache in items}
+    assert by_key["assets/index-abc.js"] == index.ASSET_CACHE
+    assert by_key["index.html"] == index.INDEX_CACHE
+    assert "assets/index-abc.js.map" not in by_key and "mockServiceWorker.js" not in by_key
+    assert "about/index.html" in by_key and "collections.json" in by_key
+    root = (out / "index.html").read_text()
+    # rclone / wget -r find the folders in the hidden list STAC Browser replaces at start
+    assert '<nav hidden aria-hidden="true">' in root and '<a href="sentinel-1-grd.parquet/">' in root
+    assert root.index("<nav hidden") < root.index("</body>")
+    import json
+    assert json.loads((out / "collections.json").read_text()) == collections
+
+
+def test_collections_json():
+    from cdsemeta import stac_api
+    rows = [("sentinel-3-olci", "2024-05", "sentinel-3-olci-2-lfr-ntc", 10, "2024-05-01T00:00:00.000000Z", "2024-05-31T00:00:00.000000Z"),
+            ("sentinel-3-olci", "2024-06", "sentinel-3-olci-2-lfr-ntc", 5, "2024-06-01T00:00:00.000000Z", "2024-06-30T00:00:00.000000Z"),
+            ("sentinel-1-raw", "2024-05", "sentinel-1-raw", 3, "2024-05-02T00:00:00.000000Z", "2024-05-03T00:00:00.000000Z")]
+    cat = stac_api.collections_json(rows, "https://example.org", {"sentinel-3-olci-2-lfr-ntc": {"title": "OLCI L2 LFR", "license": "other"}})
+    olci, raw = sorted(cat["collections"], key=lambda c: c["id"])[::-1]
+    assert olci["id"] == "sentinel-3-olci-2-lfr-ntc" and olci["title"] == "OLCI L2 LFR"
+    assert olci["cdse:files"] == {"sentinel-3-olci": ["2024-05", "2024-06"]} and olci["cdse:items"] == 15
+    assert olci["extent"]["temporal"]["interval"] == [["2024-05-01T00:00:00.000000Z", "2024-06-30T00:00:00.000000Z"]]
+    assert olci["links"][0]["href"].endswith("/collections/sentinel-3-olci-2-lfr-ntc")
+    assert raw["id"] == "sentinel-1-raw" and "no collection" in raw["description"]

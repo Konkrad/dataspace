@@ -109,8 +109,8 @@ jobs:
               --memory-limit 4GB --upload-r2 --delete-after-upload \
               --changed-days /work/sync/changed-days.txt
 
-  # The bucket's public index (HTML pages with the map viewer, files.txt/.tsv,
-  # dataspace.duckdb),
+  # The bucket's public index (STAC Browser at the root, collections.json,
+  # the file pages under /about/ and per folder, files.txt/.tsv, dataspace.duckdb),
   # from a listing of the whole bucket, so it covers every mission. Also runs
   # when a mission failed, for the ones that did upload.
   index:
@@ -124,14 +124,28 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install .
+      # STAC Browser (fork with src/local-api: the STAC API is answered in the
+      # browser with DuckDB-WASM over the monthly files) at the bucket root.
+      - uses: actions/checkout@v4
+        with:
+          repository: Konkrad/stac-browser
+          ref: main
+          path: stac-browser
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: viewer/package-lock.json
-      - name: Build the map viewer
-        working-directory: viewer
-        run: npm ci && npm run build
+          cache-dependency-path: stac-browser/package-lock.json
+      - name: Build STAC Browser
+        working-directory: stac-browser
+        env:
+          SB_catalogUrl: https://dataspace.konrad.online/api/
+          SB_catalogTitle: Copernicus Data Space catalogue
+          SB_historyMode: hash
+          SB_allowExternalAccess: "false"
+          SB_localApi: '{"url":"https://dataspace.konrad.online/api/","collectionsUrl":"https://dataspace.konrad.online/collections.json"}'
+          SB_footerLinks: '[{"label":"Files and downloads","url":"https://dataspace.konrad.online/about/"},{"label":"Documentation","url":"https://github.com/Konkrad/dataspace#readme"}]'
+        run: npm ci && npx vite build
       - name: Write and upload the index
         env:
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
@@ -139,4 +153,4 @@ jobs:
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET: ${{ secrets.R2_BUCKET || 'dataspace' }}
-        run: cdsemeta-index --out-dir "$RUNNER_TEMP/index" --viewer viewer/dist --upload-r2
+        run: cdsemeta-index --out-dir "$RUNNER_TEMP/index" --browser stac-browser/dist --upload-r2

@@ -30,3 +30,6 @@ cdsemeta-index = "cdsemeta.index:main"
 
 [tool.setuptools]
 packages = ["cdsemeta"]
+
+[tool.setuptools.package-data]
+cdsemeta = ["*.json"]

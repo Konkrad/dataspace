@@ -36,7 +36,7 @@ from pathlib import Path
 
 import duckdb
 
-from . import r2
+from . import r2, stac_api
 
 log = logging.getLogger("cdsemeta.index")
 
@@ -48,6 +48,10 @@ INDEX_CACHE = "public, max-age=300"
 # The viewer's files have content hashes in their names.
 ASSET_CACHE = "public, max-age=31536000, immutable"
 VIEWER_PREFIX = "_viewer/"
+ABOUT = "about/index.html"
+COLLECTIONS_JSON = "collections.json"
+# Files of the STAC Browser build that aren't needed on the bucket.
+BROWSER_SKIP = (".map", ".htaccess", "mitm.html", "mockServiceWorker.js")
 VIEWER_ENTRY = "src/main.js"
 
 
@@ -212,7 +216,7 @@ def root_html(datasets: list[Dataset], base: str, generated: datetime, viewer_en
     e = html.escape
     base = base.rstrip("/")
     rows = "\n".join(
-        f'<tr><td><a href="{e(d.folder)}">{e(d.folder)}</a></td><td><code>{e(d.view)}</code></td>'
+        f'<tr><td><a href="/{e(d.folder)}">{e(d.folder)}</a></td><td><code>{e(d.view)}</code></td>'
         f'<td>{e(d.files[0].month)} – {e(d.files[-1].month)}</td>'
         f'<td class="num">{len(d.files)}</td><td class="num">{human(d.size)}</td></tr>'
         for d in datasets)
@@ -228,6 +232,7 @@ def root_html(datasets: list[Dataset], base: str, generated: datetime, viewer_en
 as GeoParquet, one file per collection and sensing month. Updated daily.
 {nfiles} files, {human(total)}. Generated {generated:%Y-%m-%d %H:%M} UTC.
 Columns, collections and more examples: <a href="https://github.com/Konkrad/dataspace#readme">documentation</a>.</p>
+<p><a href="/">Search and browse the catalogue</a> (STAC Browser, in your browser).</p>
 {viewer_html(datasets, base, viewer_entry) if viewer_entry else ""}
 
 <h2>Collections</h2>
@@ -238,8 +243,9 @@ Columns, collections and more examples: <a href="https://github.com/Konkrad/data
 </tbody>
 </table></div>
 <p>Each file is <code>{e(base)}/&lt;mission&gt;-&lt;collection&gt;.parquet/&lt;YYYY-MM&gt;.parquet</code>,
-by the sensing month (<code>datetime</code>). Downloads: <a href="files.txt">files.txt</a> (one URL per line),
-<a href="files.tsv">files.tsv</a> (with size, ETag and last-modified), <a href="{DB_NAME}">{DB_NAME}</a>.</p>
+by the sensing month (<code>datetime</code>). Downloads: <a href="/files.txt">files.txt</a> (one URL per line),
+<a href="/files.tsv">files.tsv</a> (with size, ETag and last-modified), <a href="/{DB_NAME}">{DB_NAME}</a>,
+<a href="/{COLLECTIONS_JSON}">{COLLECTIONS_JSON}</a> (the STAC collections and their files).</p>
 
 <h2>Query with DuckDB</h2>
 <p>Attach the catalogue and every collection is a view; only the parts of the files a query needs are fetched.</p>
@@ -284,7 +290,7 @@ def folder_html(d: Dataset, base: str, generated: datetime) -> str:
         f'<tr><td><a href="{e(f.month)}.parquet">{e(f.month)}.parquet</a></td>'
         f'<td class="num">{human(f.size)}</td><td>{f.modified:%Y-%m-%d %H:%M}</td></tr>'
         for f in reversed(d.files))
-    body = f"""<p><a href="../">← all collections</a></p>
+    body = f"""<p><a href="/about/">← all collections</a></p>
 <h1>{e(d.folder)}</h1>
 <p class="muted">{len(d.files)} files, {human(d.size)}. DuckDB view <code>ds.{e(d.view)}</code>.
 Generated {generated:%Y-%m-%d %H:%M} UTC.</p>
@@ -321,8 +327,37 @@ def copy_viewer(viewer_dist: Path, out_dir: Path) -> tuple[dict, list[tuple[Path
     return entry, items
 
 
+def browser_index(page: str, datasets: list[Dataset]) -> str:
+    """STAC Browser's index.html, plus a hidden list of links in <body> (STAC Browser replaces
+    the body when it starts): rclone's http backend and `wget -r` mirror the bucket from it."""
+    e = html.escape
+    links = [f'<a href="{e(d.folder)}">{e(d.folder)}</a>' for d in datasets]
+    links += [f'<a href="{n}">{n}</a>' for n in ("files.txt", "files.tsv", DB_NAME, COLLECTIONS_JSON, "about/")]
+    nav = '<nav hidden aria-hidden="true">\n' + "\n".join(links) + "\n</nav>\n"
+    return page.replace("</body>", nav + "</body>", 1)
+
+
+def copy_browser(browser_dist: Path, out_dir: Path, datasets: list[Dataset]) -> list[tuple[Path, str, str, str]]:
+    """The STAC Browser build (fork with src/local-api) at the bucket root."""
+    items = []
+    for src in sorted(browser_dist.rglob("*")):
+        rel = src.relative_to(browser_dist).as_posix()
+        if src.is_dir() or rel.endswith(BROWSER_SKIP):
+            continue
+        dst = out_dir / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        if rel == "index.html":
+            dst.write_text(browser_index(src.read_text(encoding="utf-8"), datasets), encoding="utf-8")
+        else:
+            shutil.copyfile(src, dst)
+        # assets/ has content hashes in its names; the rest (index.html, sw.js, ...) can change
+        items.append((dst, rel, content_type(src), ASSET_CACHE if rel.startswith("assets/") else INDEX_CACHE))
+    return items
+
+
 def write_all(datasets: list[Dataset], base: str, out_dir: Path, *, duckdb_file: bool = True,
-              viewer_dist: Path | None = None) -> list[tuple[Path, str, str, str]]:
+              viewer_dist: Path | None = None, browser_dist: Path | None = None,
+              collections: dict | None = None) -> list[tuple[Path, str, str, str]]:
     """Write every index file under out_dir; return (path, key, content type, cache control) to upload."""
     now = datetime.now(timezone.utc)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -338,7 +373,14 @@ def write_all(datasets: list[Dataset], base: str, out_dir: Path, *, duckdb_file:
     if viewer_dist:
         entry, assets = copy_viewer(viewer_dist, out_dir)
         items.extend(assets)
-    put("index.html", root_html(datasets, base, now, entry), "text/html; charset=utf-8")
+    if browser_dist:
+        # STAC Browser at the root; the files and how to use them under /about/
+        items.extend(copy_browser(browser_dist, out_dir, datasets))
+        put(ABOUT, root_html(datasets, base, now, None), "text/html; charset=utf-8")
+    else:
+        put("index.html", root_html(datasets, base, now, entry), "text/html; charset=utf-8")
+    if collections is not None:
+        put(COLLECTIONS_JSON, json.dumps(collections, ensure_ascii=False), "application/json; charset=utf-8")
     for d in datasets:
         put(f"{d.folder}index.html", folder_html(d, base, now), "text/html; charset=utf-8")
     put("files.txt", files_txt(datasets, base), "text/plain; charset=utf-8")
@@ -358,6 +400,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-duckdb", action="store_true", help=f"skip {DB_NAME} (it reads every file's schema)")
     ap.add_argument("--viewer", type=Path, default=None, metavar="DIST",
                     help="built map viewer (viewer/dist, `npm run build`) to put on the landing page")
+    ap.add_argument("--browser", type=Path, default=None, metavar="DIST",
+                    help="built STAC Browser (fork with src/local-api) to put at the root; the landing page "
+                         "moves to /about/")
+    ap.add_argument("--no-collections", action="store_true",
+                    help=f"skip {COLLECTIONS_JSON} (it reads the collection column of every file)")
     ap.add_argument("--upload-r2", action="store_true", help="upload the files to R2 ($R2_BUCKET)")
     args = ap.parse_args(argv)
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper(),
@@ -368,10 +415,16 @@ def main(argv: list[str] | None = None) -> int:
         log.error("no <dataset>.parquet/<YYYY-MM>.parquet files in the bucket")
         return 1
     log.info("%d collections, %d files", len(datasets), sum(len(d.files) for d in datasets))
+    collections = None
+    if not args.no_collections:
+        rows = stac_api.scan([f.key for d in datasets for f in d.files], args.base_url)
+        cdse = json.loads(stac_api.CDSE_COLLECTIONS.read_text()) if stac_api.CDSE_COLLECTIONS.exists() else {}
+        collections = stac_api.collections_json([r for r in rows if r[2]], args.base_url, cdse)
+        log.info("%d STAC collections", len(collections["collections"]))
     items = write_all(datasets, args.base_url, args.out_dir, duckdb_file=not args.no_duckdb,
-                      viewer_dist=args.viewer)
+                      viewer_dist=args.viewer, browser_dist=args.browser, collections=collections)
     if args.upload_r2:
-        # Viewer, folder pages and lists first, the root page last: it refers to all of them.
+        # Assets, folder pages and lists first, the root page last: it refers to all of them.
         for path, key, ctype, cache in sorted(items, key=lambda i: i[1] == "index.html"):
             r2.upload(path, key, content_type=ctype, cache_control=cache)
     log.info("wrote %d files to %s%s", len(items), args.out_dir, " and uploaded them" if args.upload_r2 else "")
