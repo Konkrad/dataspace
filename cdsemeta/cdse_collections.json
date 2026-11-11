@@ -1,0 +1,9574 @@
+{
+ "sentinel-1-etad": {
+  "title": "Sentinel-1 Extended Time Annotation Products (ETAD) ",
+  "description": "This collection provides Sentinel-1 Extended Time Annotation Products (ETAD), auxiliary datasets designed to improve the geometric accuracy of Sentinel-1 SAR products. ETAD products contain multiple timing correction layers that can be applied to Sentinel-1 Interferometric Wide Swath (IW), Strip Map (SM), and Extra Wide Swath (EW) acquisitions. The data are distributed in NetCDF format and include corrections for ionospheric and tropospheric delays, solid Earth tides, and system timing effects such as Doppler shifts, bi-static corrections, and height-dependent FM-rate mismatches.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "ETAD",
+   "SAR",
+   "C-Band",
+   "EU",
+   "EC",
+   "IW",
+   "EW",
+   "SM"
+  ],
+  "license": "other",
+  "summaries": {
+   "platform": [
+    "sentinel-1a",
+    "sentinel-1b",
+    "sentinel-1c",
+    "sentinel-1d"
+   ],
+   "instruments": [
+    "sar"
+   ],
+   "product:type": [
+    "IW_ETA__AX",
+    "EW_ETA__AX",
+    "S6_ETA__AX",
+    "S3_ETA__AX",
+    "S4_ETA__AX",
+    "S1_ETA__AX",
+    "S2_ETA__AX",
+    "S5_ETA__AX"
+   ],
+   "constellation": [
+    "sentinel-1"
+   ],
+   "sat:orbit_state": [
+    "descending",
+    "ascending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "sar:polarizations": [
+    "VV",
+    "HH"
+   ],
+   "processing:version": [
+    "03.00",
+    "02.21",
+    "02.20",
+    "02.10"
+   ],
+   "sar:frequency_band": [
+    "C"
+   ],
+   "sar:instrument_mode": [
+    "IW",
+    "EW",
+    "SM"
+   ],
+   "sar:center_frequency": [
+    5.405
+   ],
+   "sat:platform_international_designator": [
+    "2014-016A",
+    "2016-025A",
+    "2024-235A",
+    "2025-251A"
+   ]
+  }
+ },
+ "sentinel-1-grd": {
+  "title": "Sentinel-1 Ground Range Detected (GRD)",
+  "description": "Level-1 Ground Range Detected (GRD) products consist of focused SAR data that has been detected, multi-looked and projected to ground range using the Earth ellipsoid model WGS84. The ellipsoid projection of the GRD products is corrected using the terrain height specified in the product general annotation. The terrain height used varies in azimuth and it is constant in range (For IW/EW modes only the terrain height of first subswath is considered)",
+  "keywords": [
+   "C-Band",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "GRD",
+   "IW_GRDH_1S",
+   "PT24H",
+   "SAR",
+   "Sentinel",
+   "Sentinel-1"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-1",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "platform": [
+    "sentinel-1a",
+    "sentinel-1b",
+    "sentinel-1c",
+    "sentinel-1d"
+   ],
+   "instruments": [
+    "sar"
+   ],
+   "product:type": [
+    "IW_GRDH_1S",
+    "S1_GRDH_1S",
+    "S2_GRDH_1S",
+    "S3_GRDH_1S",
+    "S4_GRDH_1S",
+    "S5_GRDH_1S",
+    "S6_GRDH_1S",
+    "EW_GRDM_1S"
+   ],
+   "constellation": [
+    "sentinel-1"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "sar:polarizations": [
+    "VV",
+    "VH",
+    "HH",
+    "HV"
+   ],
+   "processing:version": [
+    "003.52",
+    "003.61",
+    "003.71",
+    "003.80",
+    "1.0"
+   ],
+   "product:timeliness": [
+    "PT24H"
+   ],
+   "sar:frequency_band": [
+    "C"
+   ],
+   "sar:instrument_mode": [
+    "IW",
+    "EW",
+    "SM"
+   ],
+   "sar:center_frequency": [
+    5.405
+   ],
+   "view:incidence_angle": {
+    "maximum": 45,
+    "minimum": 20
+   },
+   "sar:observation_direction": [
+    "right"
+   ],
+   "product:timeliness_category": [
+    "Fast-24h",
+    "NRT-10m",
+    "NRT-3h"
+   ],
+   "sat:platform_international_designator": [
+    "2014-016A",
+    "2016-025A",
+    "2024-235A",
+    "2025-251A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-1-ocn": {
+  "title": "Sentinel-1 Level-2 Ocean (OCN): IW, EW, SM",
+  "description": "This collection offers Sentinel-1 Level-2 Ocean (OCN) products captured in Wave Mode (WV). Level-2 OCN products are specifically processed radar data. These products consist of geo-located geophysical parameters derived from Sentinel-1 Level-1 SAR data and are composed of three components: an Ocean Swell Spectra (OSW) component, an Ocean Wind Field (OWI) component, and a Radial Velocity (RVL) component. The OWI component is a ground-range gridded estimate of the surface wind speed and direction at 10 m above the surface. The OSW component is a two-dimensional ocean surface swell spectrum and includes an estimate of wind speed and direction for each swell spectrum. The OSW component provides continuous measurements of SAR swell spectra at C-band. The RVL surface radial velocity component is a ground-range gridded difference between the measured Level-2 Doppler grid and the geometrical Doppler calculated from Level-1 data. The RVL component provides continuity with the ASAR Doppler grid. OCN products are generated from all four Sentinel-1 imaging modes. In SM mode, the OCN product contains all three components. In IW and EW modes, the OCN product contains only OWI and RVL. In WV mode, the OCN product contains only OSW and RVL.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "OCN",
+   "Ocean",
+   "SAR",
+   "C-Band",
+   "EU",
+   "EC",
+   "IW",
+   "EW",
+   "SM",
+   "OSW",
+   "OWI",
+   "RVL"
+  ],
+  "license": "other",
+  "summaries": {
+   "platform": [
+    "sentinel-1a",
+    "sentinel-1b",
+    "sentinel-1c",
+    "sentinel-1d"
+   ],
+   "instruments": [
+    "sar"
+   ],
+   "product:type": [
+    "IW_OCN__2S",
+    "EW_OCN__2S",
+    "S3_OCN__2S",
+    "S6_OCN__2S",
+    "S4_OCN__2S",
+    "S2_OCN__2S",
+    "S5_OCN__2S",
+    "S1_OCN__2S"
+   ],
+   "constellation": [
+    "sentinel-1"
+   ],
+   "sat:orbit_state": [
+    "descending",
+    "ascending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "sar:polarizations": [
+    "VV",
+    "VH",
+    "HH",
+    "HV"
+   ],
+   "processing:version": [
+    "03.31",
+    "02.91",
+    "03.52",
+    "03.10",
+    "03.71",
+    "03.92",
+    "03.61",
+    "03.40",
+    "02.84",
+    "03.20",
+    "03.80",
+    "03.91",
+    "02.90",
+    "03.90",
+    "04.00",
+    "04.02",
+    "04.03",
+    "02.82",
+    "03.51",
+    "04.01",
+    "02.72",
+    "03.30",
+    "02.71",
+    "02.53",
+    "02.60",
+    "02.62",
+    "02.70"
+   ],
+   "product:timeliness": [
+    "PT24H",
+    "PT3H",
+    "PT10M"
+   ],
+   "sar:frequency_band": [
+    "C"
+   ],
+   "sar:instrument_mode": [
+    "IW",
+    "EW",
+    "SM"
+   ],
+   "sar:center_frequency": [
+    5.405
+   ],
+   "sar:resolution_range": [
+    5.0,
+    20.0
+   ],
+   "sar:resolution_azimuth": [
+    20.0,
+    40.0,
+    5.0
+   ],
+   "product:timeliness_category": [
+    "Fast-24h",
+    "NRT-3h",
+    "NRT-10m"
+   ],
+   "sat:platform_international_designator": [
+    "2014-016A",
+    "2016-025A",
+    "2024-235A",
+    "2025-251A"
+   ]
+  }
+ },
+ "sentinel-1-ocn-wv": {
+  "title": "Sentinel-1 Level-2 Ocean (OCN): WV",
+  "description": "This collection offers Sentinel-1 Level-2 Ocean (OCN) products captured in Wave Mode (WV). Level-2 OCN products are specifically processed radar data. These products consist of geo-located geophysical parameters derived from Sentinel-1 Level-1 SAR data and are composed of three components: an Ocean Swell Spectra (OSW) component, an Ocean Wind Field (OWI) component, and a Radial Velocity (RVL) component. The OWI component is a ground-range gridded estimate of the surface wind speed and direction at 10 m above the surface. The OSW component is a two-dimensional ocean surface swell spectrum and includes an estimate of wind speed and direction for each swell spectrum. The OSW component provides continuous measurements of SAR swell spectra at C-band. The RVL surface radial velocity component is a ground-range gridded difference between the measured Level-2 Doppler grid and the geometrical Doppler calculated from Level-1 data. The RVL component provides continuity with the ASAR Doppler grid. OCN products are generated from all four Sentinel-1 imaging modes. In SM mode, the OCN product contains all three components. In IW and EW modes, the OCN product contains only OWI and RVL. In WV mode, the OCN product contains only OSW and RVL.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "OCN",
+   "Ocean",
+   "SAR",
+   "C-Band",
+   "EU",
+   "EC",
+   "WV",
+   "OSW",
+   "RVL"
+  ],
+  "license": "other",
+  "summaries": {
+   "platform": [
+    "sentinel-1a",
+    "sentinel-1b",
+    "sentinel-1c",
+    "sentinel-1d"
+   ],
+   "instruments": [
+    "sar"
+   ],
+   "product:type": [
+    "WV_OCN__2S"
+   ],
+   "constellation": [
+    "sentinel-1"
+   ],
+   "sat:orbit_state": [
+    "descending",
+    "ascending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "sar:polarizations": [
+    "VV",
+    "HH"
+   ],
+   "processing:version": [
+    "03.31",
+    "02.91",
+    "02.84",
+    "03.10",
+    "02.72",
+    "02.82",
+    "03.92",
+    "03.20",
+    "03.91",
+    "03.52",
+    "03.71",
+    "02.90",
+    "03.80",
+    "03.61",
+    "03.40",
+    "03.90",
+    "04.00",
+    "04.02",
+    "04.03",
+    "02.71",
+    "02.60",
+    "02.53",
+    "03.51",
+    "04.01",
+    "02.70",
+    "02.62",
+    "03.30",
+    "02.43",
+    "02.45",
+    "02.36",
+    "02.52",
+    "02.63"
+   ],
+   "product:timeliness": [
+    "PT24H",
+    "PT10M"
+   ],
+   "sar:frequency_band": [
+    "C"
+   ],
+   "sar:instrument_mode": [
+    "WV"
+   ],
+   "sar:center_frequency": [
+    5.405
+   ],
+   "sar:resolution_range": [
+    20.0
+   ],
+   "sar:resolution_azimuth": [
+    40.0
+   ],
+   "product:timeliness_category": [
+    "Fast-24h",
+    "NRT-10m"
+   ],
+   "sat:platform_international_designator": [
+    "2014-016A",
+    "2016-025A",
+    "2024-235A",
+    "2025-251A"
+   ]
+  }
+ },
+ "sentinel-1-slc": {
+  "title": "Sentinel-1 Single Look Complex: IW, EW, SM",
+  "description": "This collection offers Sentinel-1 Level-1 Single Look Complex (SLC) products captured in the modes Interferometric Wide Swath (IW), Extra Wide Swath (EW), and Strip Map Mode (SM). Level-1 SLC products are images in the slant range by azimuth imaging plane, in the image plane of satellite data acquisition. Each image pixel is represented by a complex (I and Q) magnitude value and therefore contains both amplitude and phase information. Each I and Q value is 16 bits per pixel. The processing for all SLC products results in a single look in each dimension using the full available signal bandwidth. The imagery is geo-referenced using orbit and attitude data from the satellite. SLC images are produced in a zero Doppler geometry. This convention is common with the standard slant range products available from other SAR sensors.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "SLC",
+   "SAR",
+   "C-Band",
+   "EU",
+   "EC",
+   "IW",
+   "EW",
+   "SM"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-1",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "platform": [
+    "sentinel-1a",
+    "sentinel-1b",
+    "sentinel-1c",
+    "sentinel-1d"
+   ],
+   "instruments": [
+    "sar"
+   ],
+   "product:type": [
+    "IW_SLC__1S",
+    "EW_SLC__1S",
+    "S1_SLC__1S",
+    "S2_SLC__1S",
+    "S3_SLC__1S",
+    "S4_SLC__1S",
+    "S5_SLC__1S",
+    "S6_SLC__1S"
+   ],
+   "constellation": [
+    "sentinel-1"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "sar:polarizations": [
+    "VV",
+    "VH",
+    "HH",
+    "HV"
+   ],
+   "processing:version": [
+    "003.52",
+    "003.61",
+    "003.71",
+    "003.80",
+    "1.0"
+   ],
+   "product:timeliness": [
+    "PT24H"
+   ],
+   "sar:frequency_band": [
+    "C"
+   ],
+   "sar:instrument_mode": [
+    "IW",
+    "EW",
+    "SM"
+   ],
+   "sar:center_frequency": [
+    5.405
+   ],
+   "sar:resolution_range": [
+    1.7,
+    2.0,
+    2.5,
+    2.7,
+    3.1,
+    3.3,
+    3.6,
+    3.5,
+    7.9,
+    9.9,
+    11.6,
+    13.3,
+    14.4
+   ],
+   "sar:resolution_azimuth": [
+    3.9,
+    4.9,
+    22.5,
+    22.6,
+    22.7,
+    43.7,
+    44.3,
+    45.2,
+    45.6,
+    44.0
+   ],
+   "sar:pixel_spacing_range": [
+    1.5,
+    1.8,
+    2.2,
+    2.3,
+    2.6,
+    2.9,
+    3.1,
+    5.9
+   ],
+   "sar:observation_direction": [
+    "right"
+   ],
+   "product:timeliness_category": [
+    "Fast-24h",
+    "NRT-10m",
+    "NRT-3h"
+   ],
+   "sat:platform_international_designator": [
+    "2014-016A",
+    "2016-025A",
+    "2024-235A",
+    "2025-251A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-1-slc-wv": {
+  "title": "Sentinel-1 Single Look Complex: WV",
+  "description": "This collection offers Sentinel-1 Level-1 Single Look Complex (SLC) products captured in Wave Mode (WV). Level-1 SLC products are images in the slant range by azimuth imaging plane, in the image plane of satellite data acquisition. Each image pixel is represented by a complex (I and Q) magnitude value and therefore contains both amplitude and phase information. Each I and Q value is 16 bits per pixel. The processing for all SLC products results in a single look in each dimension using the full available signal bandwidth. The imagery is geo-referenced using orbit and attitude data from the satellite. SLC images are produced in a zero Doppler geometry. This convention is common with the standard slant range products available from other SAR sensors.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "SLC",
+   "SAR",
+   "C-Band",
+   "EU",
+   "EC",
+   "WV"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-1",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "platform": [
+    "sentinel-1a",
+    "sentinel-1b",
+    "sentinel-1c",
+    "sentinel-1d"
+   ],
+   "instruments": [
+    "sar"
+   ],
+   "product:type": [
+    "WV_SLC__1S"
+   ],
+   "constellation": [
+    "sentinel-1"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "sar:polarizations": [
+    "VV",
+    "HH"
+   ],
+   "processing:version": [
+    "003.52",
+    "003.61",
+    "003.71",
+    "003.80",
+    "1.0"
+   ],
+   "product:timeliness": [
+    "PT24H"
+   ],
+   "sar:frequency_band": [
+    "C"
+   ],
+   "sar:instrument_mode": [
+    "WV"
+   ],
+   "sar:center_frequency": [
+    5.405
+   ],
+   "sar:resolution_range": [
+    1.7,
+    2.0,
+    2.5,
+    2.7,
+    3.1,
+    3.3,
+    3.6,
+    3.5,
+    7.9,
+    9.9,
+    11.6,
+    13.3,
+    14.4
+   ],
+   "sar:resolution_azimuth": [
+    3.9,
+    4.9,
+    22.5,
+    22.6,
+    22.7,
+    43.7,
+    44.3,
+    45.2,
+    45.6,
+    44.0
+   ],
+   "sar:pixel_spacing_range": [
+    1.5,
+    1.8,
+    2.2,
+    2.3,
+    2.6,
+    2.9,
+    3.1,
+    5.9
+   ],
+   "sar:observation_direction": [
+    "right"
+   ],
+   "product:timeliness_category": [
+    "Fast-24h",
+    "NRT-10m",
+    "NRT-3h"
+   ],
+   "sat:platform_international_designator": [
+    "2014-016A",
+    "2016-025A",
+    "2024-235A",
+    "2025-251A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-2-l1c": {
+  "title": "Sentinel-2 Level-1C",
+  "description": "The Level-1C product is composed of 110x110 km2 tiles (ortho-images in UTM/WGS84 projection). Earth is subdivided on a predefined set of tiles, defined in UTM/WGS84 projection and using a 100 km step. However, each tile has a surface of 110x110 km² in order to provide large overlap with the neighbouring. The Level-1C product results from using a Digital Elevation Model (DEM) to project the image in cartographic geometry. Per-pixel radiometric measurements are provided in Top Of Atmosphere (TOA) reflectances along with the parameters to transform them into radiances.",
+  "keywords": [
+   "Copernicus",
+   "Sentinel",
+   "EU",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Imagery",
+   "Reflectance"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-2",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    10
+   ],
+   "platform": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ],
+   "instruments": [
+    "msi"
+   ],
+   "product:type": [
+    "S2MSI1C"
+   ],
+   "constellation": [
+    "sentinel-2"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "product:timeliness": [
+    "PT24H"
+   ],
+   "product:timeliness_category": [
+    "NRT"
+   ],
+   "sat:platform_international_designator": [
+    "2015-028A",
+    "2017-013A",
+    "2024-157A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-2-l2a": {
+  "title": "Sentinel-2 Level-2A",
+  "description": "The Sentinel-2 Level-2A Collection 1 product provides orthorectified Surface Reflectance (Bottom-Of-Atmosphere: BOA), with sub-pixel multispectral and multitemporal registration accuracy. Scene Classification (including Clouds and Cloud Shadows), AOT (Aerosol Optical Thickness) and WV (Water Vapour) maps are included in the product.",
+  "keywords": [
+   "Copernicus",
+   "Sentinel",
+   "EU",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Imagery",
+   "Reflectance"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-2",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    10
+   ],
+   "platform": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "nodata": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dark_area": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "vegetation": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "thin_cirrus": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cloud_shadow": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "unclassified": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "not_vegetated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "high_proba_clouds": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "medium_proba_clouds": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated_defective": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "msi"
+   ],
+   "product:type": [
+    "S2MSI2A"
+   ],
+   "constellation": [
+    "sentinel-2"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "product:timeliness": [
+    "PT24H"
+   ],
+   "product:timeliness_category": [
+    "NRT"
+   ],
+   "sat:platform_international_designator": [
+    "2015-028A",
+    "2017-013A",
+    "2024-157A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-olci-1-efr-ntc": {
+  "title": "Sentinel-3 OLCI Earth Observation Full Resolution (NTC)",
+  "description": "The Ocean and Land Color Instrument (OLCI) Earth Observation Full Resolution dataset contains top of atmosphere radiances at 21 spectral bands with center wavelengths ranging between 0.4µm and 1.02µm at spatial resolution of 300m with worldwide coverage every ~2 days.",
+  "keywords": [
+   "300m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Earth",
+   "Global",
+   "OLCI",
+   "OL_1_EFR____",
+   "P1M",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "bright": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_1_EFR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "03.24",
+    "03.25",
+    "03.27",
+    "03.29",
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-olci-1-err-ntc": {
+  "title": "Sentinel-3 OLCI Earth Observation Reduced Resolution (NTC)",
+  "description": "The Ocean and Land Color Instrument (OLCI) Earth Observation Reduced Resolution dataset contains top of atmosphere radiances at 21 spectral bands with center wavelengths ranging between 0.4µm and 1.02µm at spatial resolution of 300m with worldwide coverage every ~2 days.",
+  "keywords": [
+   "1200m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Earth",
+   "Global",
+   "OLCI",
+   "OL_1_ERR____",
+   "P1M",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1200
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "bright": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_1_ERR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "03.24",
+    "03.25",
+    "03.27",
+    "03.29",
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-olci-2-lfr-ntc": {
+  "title": "Sentinel-3 OLCI Land Full Resolution (NTC)",
+  "description": "This collection provides Sentinel-3 OLCI Level-2 Land Full Resolution products containing data on global vegetation, chlorophyll, and water vapor.",
+  "keywords": [
+   "300m",
+   "Biomass",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "Land",
+   "OLCI",
+   "OL_2_LFR____",
+   "P1M",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_2_LFR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.29",
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.41",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-olci-2-lrr-ntc": {
+  "title": "Sentinel-3 OLCI Land Reduced Resolution (NTC)",
+  "description": "This collection provides Sentinel-3 OLCI Level-2 Land Reduced Resolution products containing data on global vegetation, chlorophyll, and water vapor.",
+  "keywords": [
+   "1200m",
+   "Biomass",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "Land",
+   "OLCI",
+   "OL_2_LRR____",
+   "P1M",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1200
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_2_LRR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.29",
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.41",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-olci-2-wfr-ntc": {
+  "title": "Sentinel-3 OLCI Water Full Resolution (NTC)",
+  "description": "This collection provides Sentinel-3 OLCI Level-2 Water Full Resolution products containing data on water-leaving reflectance, ocean color, and more.",
+  "keywords": [
+   "300m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "EUMETSAT",
+   "Global",
+   "OLCI",
+   "OL_2_WFR____",
+   "Ocean",
+   "P1M",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3",
+   "Water"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://www.eumetsat.int/ocean-colour-services",
+    "name": "EUMETSAT",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_2_WFR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.45",
+    "03.47",
+    "03.50",
+    "03.51"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-olci-2-wrr-ntc": {
+  "title": "Sentinel-3 OLCI Water Reduced Resolution (NTC)",
+  "description": "This collection provides Sentinel-3 OLCI Level-2 Water Reduced Resolution products containing data on water-leaving reflectance, ocean color, and more.",
+  "keywords": [
+   "1200m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "EUMETSAT",
+   "Global",
+   "OLCI",
+   "OL_2_WRR____",
+   "Ocean",
+   "P1M",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3",
+   "Water"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://www.eumetsat.int/ocean-colour-services",
+    "name": "EUMETSAT",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1200
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_2_WRR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "06.13",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.45",
+    "03.47",
+    "03.50",
+    "03.51"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sl-1-rbt-ntc": {
+  "title": "Sentinel-3 SLSTR Radiance and Brightness Temperature (NTC)",
+  "description": "The Copernicus Sentinel-3 SLSTR RBT products provide global brightness temperatures and radiances with a spatial resolution of 500 meters for reflectance bands and 1 kilometer for thermal infrared bands, useful for environmental monitoring and climate studies.",
+  "keywords": [
+   "1000m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "P1M",
+   "Radiance",
+   "SLSTR",
+   "SL_1_RBT____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3",
+   "Temperature"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "bands": [
+    {
+     "name": "S1",
+     "description": "Band 1 - Cloud screening, vegetation monitoring, aerosol",
+     "eo:center_wavelength": 0.55427,
+     "eo:full_width_half_max": 0.01926
+    },
+    {
+     "name": "S2",
+     "description": "Band 2 - NDVI, vegetation monitoring, aerosol",
+     "eo:center_wavelength": 0.65947,
+     "eo:full_width_half_max": 0.01925
+    },
+    {
+     "description": "Band 3 - NDVI, cloud flagging, pixel co-registration",
+     "alternate:name": "S3",
+     "eo:center_wavelength": 0.868,
+     "eo:full_width_half_max": 0.0206
+    },
+    {
+     "name": "S4",
+     "description": "Band 4 - Cirrus detection over land",
+     "eo:center_wavelength": 1.3748,
+     "eo:full_width_half_max": 0.0208
+    },
+    {
+     "name": "S5",
+     "description": "Band 5 - Cloud clearing, ice, snow, vegetation monitoring",
+     "eo:center_wavelength": 1.6134,
+     "eo:full_width_half_max": 0.06068
+    },
+    {
+     "name": "S6",
+     "description": "Band 6 - Vegetation state and cloud clearing",
+     "eo:center_wavelength": 2.2557,
+     "eo:full_width_half_max": 0.05015
+    },
+    {
+     "name": "S7",
+     "description": "Band 7 - SST, LST, Active fire",
+     "eo:center_wavelength": 3.742,
+     "eo:full_width_half_max": 0.398
+    },
+    {
+     "name": "S8",
+     "description": "Band 8 - SST, LST, Active fire",
+     "eo:center_wavelength": 10.854,
+     "eo:full_width_half_max": 0.776
+    },
+    {
+     "name": "S9",
+     "description": "Band 9 - SST, LST",
+     "eo:center_wavelength": 12.0225,
+     "eo:full_width_half_max": 0.905
+    },
+    {
+     "name": "F1",
+     "description": "Band 10 - Active fire",
+     "eo:center_wavelength": 3.742,
+     "eo:full_width_half_max": 0.398
+    },
+    {
+     "name": "F2",
+     "description": "Band 11 - Active fire",
+     "eo:center_wavelength": 10.854,
+     "eo:full_width_half_max": 0.776
+    }
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "slstr"
+   ],
+   "product:type": [
+    "SL_1_RBT___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "03.24",
+    "03.25",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.47",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sl-2-aod-nrt": {
+  "title": "Sentinel-3 SLSTR Aerosol Optical Depth (NRT)",
+  "description": "The Copernicus Sentinel-3 SLSTR AOD product quantifies the abundance of aerosol particles, and monitors their global distribution & long-range transport, at the scale of 9.5 x 9.5 km2. All observations are made available in less than 3 hours from the SLSTR observation sensing time.",
+  "keywords": [
+   "9500m",
+   "Aerosol",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "EUMETSAT",
+   "Global",
+   "PT3H",
+   "SLSTR",
+   "SL_2_AOD____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://www.eumetsat.int/",
+    "name": "EUMETSAT",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    9500
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "slstr"
+   ],
+   "product:type": [
+    "SL_2_AOD___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "02.00",
+    "03.00",
+    "04.00",
+    "04.01",
+    "04.02"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NR"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sl-2-frp-ntc": {
+  "title": "Sentinel-3 SLSTR Fire Radiative Power (NTC)",
+  "description": "This Collection provides Sentinel-3 SLSTR Level-2 Fire Radiative Power (FRP) products containing data on fires detected over land and ocean.",
+  "keywords": [
+   "1000m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Fire",
+   "P1M",
+   "SLSTR",
+   "SL_2_FRP____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3",
+   "Temperature"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "slstr"
+   ],
+   "product:type": [
+    "SL_2_FRP___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.40",
+    "03.43",
+    "03.00",
+    "03.44",
+    "03.45",
+    "03.01",
+    "03.48",
+    "03.49",
+    "03.50",
+    "04.00"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sl-2-lst-ntc": {
+  "title": "Sentinel-3 SLSTR Land Surface Temperature (NTC)",
+  "description": "This Collection provides Sentinel-3 SLSTR Level-2 Land Surface Temperature products containing data on land surface temperature measurements on a 1km grid. Radiance is measured in two channels to determine the temperature of the Earth's surface skin in the instrument field of view, where the term \"skin\" refers to the top surface of bare soil or the effective emitting temperature of vegetation canopies as viewed from above.",
+  "keywords": [
+   "1000m",
+   "Aerosol",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "P1M",
+   "SLSTR",
+   "SL_2_LST____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "slstr"
+   ],
+   "product:type": [
+    "SL_2_LST___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.29",
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.40",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.47",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sl-2-wst-ntc": {
+  "title": "Sentinel-3 SLSTR Water Surface Temperature (NTC)",
+  "description": "This Collection provides Sentinel-3 SLSTR Level-2 Water Surface Temperature products containing data on sea surface temperature measurements on a 1km grid.",
+  "keywords": [
+   "1000m",
+   "Aerosol",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "EUMETSAT",
+   "Global",
+   "P1M",
+   "SLSTR",
+   "SL_2_WST____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://www.eumetsat.int/sea-surface-temperature-services",
+    "name": "EUMETSAT",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "slstr"
+   ],
+   "product:type": [
+    "SL_2_WST___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.45",
+    "03.47",
+    "03.50",
+    "03.51"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-1-sra-a-ntc": {
+  "title": "Sentinel-3 SRAL Radar Altimetry L-1A (NTC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-1A products, which contains geo-located bursts of echoes with all calibrations applied.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_1_SRA_A_"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "06.11",
+    "06.12",
+    "06.13",
+    "06.14",
+    "06.16",
+    "06.17",
+    "06.18",
+    "06.19",
+    "06.20",
+    "07.06",
+    "07.07"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-1-sra-ntc": {
+  "title": "Sentinel-3 SRAL Radar Altimetry L-1B (NTC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-1B products, which contains geo-located and fully calibrated multi-looked High Resolution power echoes.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_1_SRA___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "06.11",
+    "06.12",
+    "06.13",
+    "06.14",
+    "06.16",
+    "06.17",
+    "06.18",
+    "06.29",
+    "06.20"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-2-lan-hy-ntc": {
+  "title": "Sentinel-3 SRAL Land Radar Altimetry - Hydrology (NTC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry Hydrology products, which contains surface topography estimations of lakes and rivers.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "Land",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_LAN_HY"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "07.06",
+    "07.07",
+    "07.08"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-2-lan-li-ntc": {
+  "title": "Sentinel-3 SRAL Land Radar Altimetry - Land Ice (NTC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry Land Ice products, which contains surface topography estimations of the Greenland and Antarctic ice sheets.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "Land",
+   "Ice",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_LAN_LI"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "07.06",
+    "07.07",
+    "07.08"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-2-lan-ntc": {
+  "title": "Sentinel-3 SRAL Land Radar Altimetry (NTC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry products, which contains data on land radar altimetry measurements. Each product contains three NetCDF files.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "Land",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_LAN___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "06.07",
+    "06.10",
+    "06.12",
+    "06.14",
+    "06.15",
+    "06.18",
+    "06.19",
+    "06.20"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-2-lan-si-ntc": {
+  "title": "Sentinel-3 SRAL Land Radar Altimetry - Sea Ice (NTC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry Sea Ice products, which contains estimations of the radar freeboard over the Arctic and Antarctic sea ice.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "Land",
+   "Ice",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_LAN_SI"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "07.06",
+    "07.07",
+    "07.08"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-2-wat-ntc": {
+  "title": "Sentinel-3 SRAL Ocean Radar Altimetry (NTC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Ocean Altimetry products, which contain data on ocean radar altimetry measurements.",
+  "keywords": [
+   "1640m",
+   "Altimetry",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "EUMETSAT",
+   "Ocean",
+   "P1M",
+   "Radar",
+   "SRAL",
+   "SR_2_WAT____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://www.eumetsat.int/",
+    "name": "EUMETSAT",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_WAT___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "06.05",
+    "06.06",
+    "06.07",
+    "06.10",
+    "06.12",
+    "06.14",
+    "06.15",
+    "06.18",
+    "06.50",
+    "06.52",
+    "07.01",
+    "07.02",
+    "07.03",
+    "07.04",
+    "07.05"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-syn-2-aod-ntc": {
+  "title": "Sentinel-3 SYNERGY Aerosol Optical Depth (NTC)",
+  "description": "This Collection provides the Sentinel-3 Synergy Level-2 Aerosol Optical Depth product, which is a downstream development of the Sentinel-2 Level-1 OLCI FR and SLSTR Radiances and Brightness Temperatures products. The dataset provides both retrieved and diagnostic global aerosol parameters at super-pixel (4.5 km x 4.5 km) resolution in a single NetCDF file for all regions over land and ocean free of snow/ice cover, excluding high cloud fraction data.",
+  "keywords": [
+   "4500m",
+   "Aerosol",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "Mixed",
+   "P1M",
+   "SY_2_AOD____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    4500
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci",
+    "slstr"
+   ],
+   "product:type": [
+    "SY_2_AOD___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "01.03",
+    "01.04",
+    "01.05",
+    "01.06",
+    "01.09"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-syn-2-syn-ntc": {
+  "title": "Sentinel-3 Land Surface Reflectance and Aerosol (NTC)",
+  "description": "This Collection provides the Sentinel-3 Synergy Level-2 Land Surface Reflectance and Aerosol product, which contains data on Surface Directional Reflectance, Aerosol Optical Thickness, and an Angstrom coefficient estimate over land.",
+  "keywords": [
+   "300m",
+   "Aerosol",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Land",
+   "Mixed",
+   "P1M",
+   "Reflectance",
+   "SY_2_SYN____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci",
+    "slstr"
+   ],
+   "product:type": [
+    "SY_2_SYN___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.40",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-syn-2-syn-stc": {
+  "title": "Sentinel-3 Land Surface Reflectance and Aerosol (STC)",
+  "description": "This Collection provides the Sentinel-3 Synergy Level-2 Land Surface Reflectance and Aerosol product, which contains data on Surface Directional Reflectance, Aerosol Optical Thickness, and an Angstrom coefficient estimate over land.",
+  "keywords": [
+   "300m",
+   "Aerosol",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Land",
+   "Mixed",
+   "PT48H",
+   "Reflectance",
+   "SY_2_SYN____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci",
+    "slstr"
+   ],
+   "product:type": [
+    "SY_2_SYN___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.40",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "PT48H"
+   ],
+   "product:timeliness_category": [
+    "ST"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-syn-2-v10-ntc": {
+  "title": "Sentinel-3 SYNERGY 10-Day Surface Reflectance and NDVI (NTC)",
+  "description": "This Collection provides the Sentinel-3 Synergy Level-2 10-Day Surface Reflectance and NDVI products, which are SPOT VEGETATION Continuity Products similar to those obtained from the VEGETATION instrument onboard the SPOT-4 and SPOT-5 satellites.",
+  "keywords": [
+   "1000m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Mixed",
+   "NDVI",
+   "P1M",
+   "Reflectance",
+   "SY_2_V10____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci",
+    "slstr"
+   ],
+   "product:type": [
+    "SY_2_V10___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.40",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-syn-2-v10-stc": {
+  "title": "Sentinel-3 SYNERGY 10-Day Surface Reflectance and NDVI (STC)",
+  "description": "This Collection provides the Sentinel-3 Synergy Level-2 10-Day Surface Reflectance and NDVI products, which are SPOT VEGETATION Continuity Products similar to those obtained from the VEGETATION instrument onboard the SPOT-4 and SPOT-5 satellites.",
+  "keywords": [
+   "1000m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Mixed",
+   "NDVI",
+   "PT48H",
+   "Reflectance",
+   "SY_2_V10____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci",
+    "slstr"
+   ],
+   "product:type": [
+    "SY_2_V10___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.40",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "PT48H"
+   ],
+   "product:timeliness_category": [
+    "ST"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-syn-2-vg1-ntc": {
+  "title": "Sentinel-3 SYNERGY 1-Day Surface Reflectance and NDVI (NTC)",
+  "description": "This Collection provides the Sentinel-3 Synergy Level-2 1-Day Surface Reflectance and NDVI products, which are SPOT VEGETATION Continuity Products similar to those obtained from the VEGETATION instrument onboard the SPOT-4 and SPOT-5 satellites.",
+  "keywords": [
+   "1000m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Mixed",
+   "NDVI",
+   "P1M",
+   "Reflectance",
+   "SY_2_VG1____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci",
+    "slstr"
+   ],
+   "product:type": [
+    "SY_2_VG1___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.40",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-syn-2-vg1-stc": {
+  "title": "Sentinel-3 SYNERGY 1-Day Surface Reflectance and NDVI (STC)",
+  "description": "This Collection provides the Sentinel-3 Synergy Level-2 1-Day Surface Reflectance and NDVI products, which are SPOT VEGETATION Continuity Products similar to those obtained from the VEGETATION instrument onboard the SPOT-4 and SPOT-5 satellites.",
+  "keywords": [
+   "1000m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Mixed",
+   "NDVI",
+   "PT48H",
+   "Reflectance",
+   "SY_2_VG1____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci",
+    "slstr"
+   ],
+   "product:type": [
+    "SY_2_VG1___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.40",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "PT48H"
+   ],
+   "product:timeliness_category": [
+    "ST"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-syn-2-vgp-ntc": {
+  "title": "Sentinel-3 SYNERGY Top of Atmosphere Reflectance (NTC)",
+  "description": "This Collection provides the Sentinel-3 Synergy Level-2 Top of Atmosphere Reflectance product, which is a SPOT VEGETATION Continuity Product containing measurement data similar to that obtained by the VEGETATION instrument onboad the SPOT-3 and SPOT-4 satellites.",
+  "keywords": [
+   "1000m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Mixed",
+   "P1M",
+   "Reflectance",
+   "SY_2_VGP____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci",
+    "slstr"
+   ],
+   "product:type": [
+    "SY_2_VGP___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "06.15",
+    "06.16",
+    "06.17",
+    "06.18",
+    "06.19",
+    "06.20",
+    "06.21",
+    "06.22",
+    "06.23",
+    "06.26",
+    "06.28"
+   ],
+   "product:timeliness": [
+    "P1M"
+   ],
+   "product:timeliness_category": [
+    "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-syn-2-vgp-stc": {
+  "title": "Sentinel-3 SYNERGY Top of Atmosphere Reflectance (STC)",
+  "description": "This Collection provides the Sentinel-3 Synergy Level-2 Top of Atmosphere Reflectance product, which is a SPOT VEGETATION Continuity Product containing measurement data similar to that obtained by the VEGETATION instrument onboad the SPOT-3 and SPOT-4 satellites.",
+  "keywords": [
+   "1000m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Mixed",
+   "PT48H",
+   "Reflectance",
+   "SY_2_VGP____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci",
+    "slstr"
+   ],
+   "product:type": [
+    "SY_2_VGP___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "06.15",
+    "06.16",
+    "06.17",
+    "06.18",
+    "06.19",
+    "06.20",
+    "06.21",
+    "06.22",
+    "06.23",
+    "06.26",
+    "06.28"
+   ],
+   "product:timeliness": [
+    "PT48H"
+   ],
+   "product:timeliness_category": [
+    "ST"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd1-nrti": {
+  "title": "Sentinel-5P Level 1 Radiance Band 1 (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD1 products, which contains Earth radiance spectra for spectral band 1.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD1",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    5500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD1"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd1-offl": {
+  "title": "Sentinel-5P Level 1 Radiance Band 1 (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD1 products, which contains Earth radiance spectra for spectral band 1.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD1",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    5500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD1"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd1-rpro": {
+  "title": "Sentinel-5P Level 1 Radiance Band 1 (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD1 products, which contains Earth radiance spectra for spectral band 1.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD1",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    5500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD1"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd2-nrti": {
+  "title": "Sentinel-5P Level 1 Radiance Band 2 (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD2 products, which contains Earth radiance spectra for spectral band 2.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD2",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD2"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd2-offl": {
+  "title": "Sentinel-5P Level 1 Radiance Band 2 (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD2 products, which contains Earth radiance spectra for spectral band 2.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD2",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD2"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd2-rpro": {
+  "title": "Sentinel-5P Level 1 Radiance Band 2 (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD2 products, which contains Earth radiance spectra for spectral band 2.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD2",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD2"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd3-nrti": {
+  "title": "Sentinel-5P Level 1 Radiance Band 3 (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD3 products, which contains Earth radiance spectra for spectral band 3.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD3",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD3"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd3-offl": {
+  "title": "Sentinel-5P Level 1 Radiance Band 3 (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD3 products, which contains Earth radiance spectra for spectral band 3.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD3",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD3"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd3-rpro": {
+  "title": "Sentinel-5P Level 1 Radiance Band 3 (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD3 products, which contains Earth radiance spectra for spectral band 3.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD3",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD3"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd4-nrti": {
+  "title": "Sentinel-5P Level 1 Radiance Band 4 (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD4 products, which contains Earth radiance spectra for spectral band 4.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD4",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD4"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd4-offl": {
+  "title": "Sentinel-5P Level 1 Radiance Band 4 (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD4 products, which contains Earth radiance spectra for spectral band 4.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD4",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD4"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd4-rpro": {
+  "title": "Sentinel-5P Level 1 Radiance Band 4 (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD4 products, which contains Earth radiance spectra for spectral band 4.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD4",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD4"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd5-nrti": {
+  "title": "Sentinel-5P Level 1 Radiance Band 5 (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD5 products, which contains Earth radiance spectra for spectral band 5.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD5",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD5"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd5-offl": {
+  "title": "Sentinel-5P Level 1 Radiance Band 5 (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD5 products, which contains Earth radiance spectra for spectral band 5.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD5",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD5"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd5-rpro": {
+  "title": "Sentinel-5P Level 1 Radiance Band 5 (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD5 products, which contains Earth radiance spectra for spectral band 5.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD5",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD5"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd6-nrti": {
+  "title": "Sentinel-5P Level 1 Radiance Band 6 (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD6 products, which contains Earth radiance spectra for spectral band 6.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD6",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD6"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd6-offl": {
+  "title": "Sentinel-5P Level 1 Radiance Band 6 (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD6 products, which contains Earth radiance spectra for spectral band 6.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD6",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD6"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd6-rpro": {
+  "title": "Sentinel-5P Level 1 Radiance Band 6 (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD6 products, which contains Earth radiance spectra for spectral band 6.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD6",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD6"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd7-nrti": {
+  "title": "Sentinel-5P Level 1 Radiance Band 7 (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD7 products, which contains Earth radiance spectra for spectral band 7.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD7",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    5500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD7"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd7-offl": {
+  "title": "Sentinel-5P Level 1 Radiance Band 7 (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD7 products, which contains Earth radiance spectra for spectral band 7.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD7",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    5500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD7"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd7-rpro": {
+  "title": "Sentinel-5P Level 1 Radiance Band 7 (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD7 products, which contains Earth radiance spectra for spectral band 7.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD7",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    5500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD7"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd8-nrti": {
+  "title": "Sentinel-5P Level 1 Radiance Band 8 (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD8 products, which contains Earth radiance spectra for spectral band 8.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD8",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    5500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD8"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd8-offl": {
+  "title": "Sentinel-5P Level 1 Radiance Band 8 (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD8 products, which contains Earth radiance spectra for spectral band 8.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD8",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    5500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD8"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l1-ra-bd8-rpro": {
+  "title": "Sentinel-5P Level 1 Radiance Band 8 (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-1 RA BD8 products, which contains Earth radiance spectra for spectral band 8.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L1",
+   "RA-BD8",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    5500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    null
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L1B_RA_BD8"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "2.0.0",
+    "2.1.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-aer-ai-nrti": {
+  "title": "Sentinel-5P Level 2 Ultraviolet Aerosol Index (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-2 AER AI products, which contains high-resolution imagery of the UV Aerosol Index (UVAI), also called the Absorbing Aerosol Index (AAI).",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "AER-AI",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__AER_AI"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.2",
+    "1.1.0",
+    "1.2.0",
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-aer-ai-offl": {
+  "title": "Sentinel-5P Level 2 Ultraviolet Aerosol Index (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 AER AI products, which contains high-resolution imagery of the UV Aerosol Index (UVAI), also called the Absorbing Aerosol Index (AAI).",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "AER-AI",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__AER_AI"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.2",
+    "1.1.0",
+    "1.2.0",
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-aer-ai-rpro": {
+  "title": "Sentinel-5P Level 2 Ultraviolet Aerosol Index (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 AER AI products, which contains high-resolution imagery of the UV Aerosol Index (UVAI), also called the Absorbing Aerosol Index (AAI).",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "AER-AI",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__AER_AI"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.2",
+    "1.1.0",
+    "1.2.0",
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-aer-lh-nrti": {
+  "title": "Sentinel-5P Level 2 Aerosol Layer Height (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-2 AER LH products, which contains high-resolution imagery of the UV Aerosol Index (UVAI), also called the Absorbing Layer Height (ALH).",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "AER-LH",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__AER_LH"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-aer-lh-offl": {
+  "title": "Sentinel-5P Level 2 Aerosol Layer Height (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 AER LH products, which contains high-resolution imagery of the UV Aerosol Index (UVAI), also called the Absorbing Layer Height (ALH).",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "AER-LH",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__AER_LH"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-aer-lh-rpro": {
+  "title": "Sentinel-5P Level 2 Aerosol Layer Height (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 AER LH products, which contains high-resolution imagery of the UV Aerosol Index (UVAI), also called the Absorbing Layer Height (ALH).",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "AER-LH",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__AER_LH"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-ch4-nrti": {
+  "title": "Sentinel-5P Level 2 Methane (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-2 CH4 products, which contains high-resolution imagery of methane concentrations.",
+  "keywords": [
+   "7000m",
+   "Atmosphere",
+   "CH4",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "L2",
+   "L2__CH4___",
+   "NRTI",
+   "PT3H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-5",
+   "TROPOMI"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    7000
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__CH4___"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-ch4-offl": {
+  "title": "Sentinel-5P Level 2 Methane (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 CH4 products, which contains high-resolution imagery of methane concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "CH4",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    7000
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__CH4___"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-ch4-rpro": {
+  "title": "Sentinel-5P Level 2 Methane (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 CH4 products, which contains high-resolution imagery of methane concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "CH4",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    7000
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__CH4___"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-cloud-nrti": {
+  "title": "Sentinel-5P Level 2 Cloud (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-2 Cloud products, which contains high-resolution imagery of cloud parameters.",
+  "keywords": [
+   "3500m",
+   "Atmosphere",
+   "CLOUD",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "L2",
+   "L2__CLOUD_",
+   "NRTI",
+   "PT3H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-5",
+   "TROPOMI"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__CLOUD_"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "1.1.1",
+    "1.1.2",
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-cloud-offl": {
+  "title": "Sentinel-5P Level 2 Cloud (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 Cloud products, which contains high-resolution imagery of cloud parameters.",
+  "keywords": [
+   "3500m",
+   "Atmosphere",
+   "CLOUD",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "L2",
+   "L2__CLOUD_",
+   "OFFL",
+   "PT12H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-5",
+   "TROPOMI"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__CLOUD_"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "1.1.1",
+    "1.1.2",
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-cloud-rpro": {
+  "title": "Sentinel-5P Level 2 Cloud (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 Cloud products, which contains high-resolution imagery of cloud parameters.",
+  "keywords": [
+   "3500m",
+   "Atmosphere",
+   "CLOUD",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "L2",
+   "L2__CLOUD_",
+   "RPRO",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-5",
+   "TROPOMI"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__CLOUD_"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "1.1.1",
+    "1.1.2",
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-co-nrti": {
+  "title": "Sentinel-5P Level 2 Carbon Monoxide (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-2 CO products, which contains high-resolution imagery of carbon monoxide concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "CO",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    7000
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__CO____"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.2",
+    "1.1.0",
+    "1.2.0",
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-co-offl": {
+  "title": "Sentinel-5P Level 2 Carbon Monoxide (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 CO products, which contains high-resolution imagery of carbon monoxide concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "CO",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    7000
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__CO____"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.2",
+    "1.1.0",
+    "1.2.0",
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-co-rpro": {
+  "title": "Sentinel-5P Level 2 Carbon Monoxide (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 CO products, which contains high-resolution imagery of carbon monoxide concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "CO",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    7000
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__CO____"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.2",
+    "1.1.0",
+    "1.2.0",
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-hcho-nrti": {
+  "title": "Sentinel-5P Level 2 Formaldehyde (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-2 HCHO products, which contains high-resolution imagery of atmospheric formaldehyde concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "HCHO",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__HCHO__"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-hcho-offl": {
+  "title": "Sentinel-5P Level 2 Formaldehyde (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 HCHO products, which contains high-resolution imagery of atmospheric formaldehyde concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "HCHO",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__HCHO__"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-hcho-rpro": {
+  "title": "Sentinel-5P Level 2 Formaldehyde (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 HCHO products, which contains high-resolution imagery of atmospheric formaldehyde concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "HCHO",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__HCHO__"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-no2-nrti": {
+  "title": "Sentinel-5P Level 2 Nitrogen Dioxide (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-2 NO2 products, which contains high-resolution imagery of nitrogen dioxide concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "NO2",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__NO2___"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.2",
+    "1.1.0",
+    "1.2.0",
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-no2-offl": {
+  "title": "Sentinel-5P Level 2 Nitrogen Dioxide (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 NO2 products, which contains high-resolution imagery of nitrogen dioxide concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "NO2",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__NO2___"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.2",
+    "1.1.0",
+    "1.2.0",
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-no2-rpro": {
+  "title": "Sentinel-5P Level 2 Nitrogen Dioxide (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 NO2 products, which contains high-resolution imagery of nitrogen dioxide concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "NO2",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__NO2___"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.2",
+    "1.1.0",
+    "1.2.0",
+    "1.2.2",
+    "1.3.0",
+    "1.3.1",
+    "1.3.2",
+    "1.4.0",
+    "2.2.0",
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-np-bd3-offl": {
+  "title": "Sentinel-5P Level 2 NPP Cloud (band 3) (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 NP BD3 products, which contains information on cloud and scene homogeneity.",
+  "keywords": [
+   "3500m",
+   "Atmosphere",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "L2",
+   "L2__NP_BD3",
+   "NP-BD3",
+   "OFFL",
+   "PT12H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-5",
+   "TROPOMI"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__NP_BD3"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "1.0.2",
+    "1.1.0",
+    "1.3.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-np-bd3-rpro": {
+  "title": "Sentinel-5P Level 2 NPP Cloud (band 3) (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 NP BD3 products, which contains information on cloud and scene homogeneity.",
+  "keywords": [
+   "3500m",
+   "Atmosphere",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "L2",
+   "L2__NP_BD3",
+   "NP-BD3",
+   "RPRO",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-5",
+   "TROPOMI"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__NP_BD3"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "1.0.2",
+    "1.1.0",
+    "1.3.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-np-bd6-offl": {
+  "title": "Sentinel-5P Level 2 NPP Cloud (band 6) (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 NP BD6 products, which contains information on cloud and scene homogeneity.",
+  "keywords": [
+   "3500m",
+   "Atmosphere",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "L2",
+   "L2__NP_BD6",
+   "NP-BD6",
+   "OFFL",
+   "PT12H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-5",
+   "TROPOMI"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__NP_BD6"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "1.0.2",
+    "1.1.0",
+    "1.3.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-np-bd6-rpro": {
+  "title": "Sentinel-5P Level 2 NPP Cloud (band 6) (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 NP BD6 products, which contains information on cloud and scene homogeneity.",
+  "keywords": [
+   "3500m",
+   "Atmosphere",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "L2",
+   "L2__NP_BD6",
+   "NP-BD6",
+   "RPRO",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-5",
+   "TROPOMI"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__NP_BD6"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "1.0.2",
+    "1.1.0",
+    "1.3.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-np-bd7-offl": {
+  "title": "Sentinel-5P Level 2 NPP Cloud (band 7) (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 NP BD7 products, which contains information on cloud and scene homogeneity.",
+  "keywords": [
+   "3500m",
+   "Atmosphere",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "L2",
+   "L2__NP_BD7",
+   "NP-BD7",
+   "OFFL",
+   "PT12H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-5",
+   "TROPOMI"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__NP_BD7"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "1.0.2",
+    "1.1.0",
+    "1.3.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-np-bd7-rpro": {
+  "title": "Sentinel-5P Level 2 NPP Cloud (band 7) (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 NP BD7 products, which contains information on cloud and scene homogeneity.",
+  "keywords": [
+   "3500m",
+   "Atmosphere",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "L2",
+   "L2__NP_BD7",
+   "NP-BD7",
+   "RPRO",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-5",
+   "TROPOMI"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__NP_BD7"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.0.0",
+    "1.0.2",
+    "1.1.0",
+    "1.3.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-o3-nrti": {
+  "title": "Sentinel-5P Level 2 Ozone (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-2 O3 products, which contains high-resolution imagery of total column ozone concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "O3",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__O3____"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.1.2",
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-o3-offl": {
+  "title": "Sentinel-5P Level 2 Ozone (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 O3 products, which contains high-resolution imagery of total column ozone concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "O3",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__O3____"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.1.2",
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-o3-pr-nrti": {
+  "title": "Sentinel-5P Level 2 Ozone Profile (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-2 O3 PR products, which contains ozone concentration for 33 levels in the atmosphere.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "O3-PR",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    21000
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__O3__PR"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-o3-pr-offl": {
+  "title": "Sentinel-5P Level 2 Ozone Profile (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 O3 PR products, which contains ozone concentration for 33 levels in the atmosphere.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "O3-PR",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    21000
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__O3__PR"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-o3-pr-rpro": {
+  "title": "Sentinel-5P Level 2 Ozone Profile (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 O3 PR products, which contains ozone concentration for 33 levels in the atmosphere.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "O3-PR",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    21000
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__O3__PR"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "2.3.1",
+    "2.4.0",
+    "2.5.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-o3-rpro": {
+  "title": "Sentinel-5P Level 2 Ozone (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 O3 products, which contains high-resolution imagery of total column ozone concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Atmosphere"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer",
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__O3____"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.1.2",
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-o3-tcl-nrti": {
+  "title": "Sentinel-5P Level 2 Tropospheric Ozone (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-2 O3 TCL products, which contains high-resolution imagery of tropospheric ozone concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "O3-TCL",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__O3_TCL"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-o3-tcl-offl": {
+  "title": "Sentinel-5P Level 2 Tropospheric Ozone (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 O3 TCL products, which contains high-resolution imagery of tropospheric ozone concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "O3-TCL",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__O3_TCL"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "P5D"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-o3-tcl-rpro": {
+  "title": "Sentinel-5P Level 2 Tropospheric Ozone (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 O3 TCL products, which contains high-resolution imagery of tropospheric ozone concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "O3-TCL",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__O3_TCL"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-so2-nrti": {
+  "title": "Sentinel-5P Level 2 Sulphur Dioxide (NRTI)",
+  "description": "This Collection provides Sentinel-5P Level-2 SO2 products, which contains high-resolution imagery of atmospheric sulfur dioxide concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "SO2",
+   "NRTI",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__SO2___"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.1.2",
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NRTI"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-so2-offl": {
+  "title": "Sentinel-5P Level 2 Sulphur Dioxide (OFFL)",
+  "description": "This Collection provides Sentinel-5P Level-2 SO2 products, which contains high-resolution imagery of atmospheric sulfur dioxide concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "SO2",
+   "OFFL",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__SO2___"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.1.2",
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "product:timeliness": [
+    "PT12H"
+   ],
+   "product:timeliness_category": [
+    "OFFL"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-5p-l2-so2-rpro": {
+  "title": "Sentinel-5P Level 2 Sulphur Dioxide (RPRO)",
+  "description": "This Collection provides Sentinel-5P Level-2 SO2 products, which contains high-resolution imagery of atmospheric sulfur dioxide concentrations.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Global",
+   "Atmosphere",
+   "L2",
+   "SO2",
+   "RPRO",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-5p",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    3500
+   ],
+   "platform": [
+    "sentinel-5p"
+   ],
+   "proj:code": [
+    "EPSG:4326"
+   ],
+   "instruments": [
+    "tropomi"
+   ],
+   "product:type": [
+    "L2__SO2___"
+   ],
+   "constellation": [
+    "sentinel-5"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "1.1.2",
+    "1.1.5",
+    "1.1.6",
+    "1.1.7",
+    "1.1.8",
+    "2.1.3",
+    "2.1.4",
+    "2.2.1",
+    "2.3.0",
+    "2.4.1",
+    "2.5.0"
+   ],
+   "sat:platform_international_designator": [
+    "2017-064A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ }
+}

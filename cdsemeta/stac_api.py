@@ -32,7 +32,7 @@ STAC_VERSION = "1.1.0"
 CDSE_STAC = "https://stac.dataspace.copernicus.eu/v1"
 CDSE_COLLECTIONS = Path(__file__).with_name("cdse_collections.json")
 # Fields of CDSE's collections copied into ours.
-KEEP = ("title", "description", "keywords", "license", "providers", "summaries", "item_assets", "sci:citation")
+KEEP = ("title", "description", "keywords", "license", "providers", "summaries", "sci:citation")
 
 
 def connect_reader() -> tuple[duckdb.DuckDBPyConnection, str | None]:
