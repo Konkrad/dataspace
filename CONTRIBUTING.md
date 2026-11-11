@@ -348,14 +348,16 @@ custom domain):
   `concat(http.request.uri.path, "index.html")`.
 - **CORS** on the bucket, for browser apps (stac-map, shell.duckdb.org):
   `AllowedOrigins ["*"]`, methods `GET`, `HEAD`, header `range`, exposing
-  `content-range`, `content-length`, `etag`, `accept-ranges`.
+  `content-range`, `content-length`, `etag`, `accept-ranges`. The bucket is in
+  the EU jurisdiction, so the API and `wrangler` need it named:
+  `npx wrangler r2 bucket cors set dataspace --jurisdiction eu --file cors.json`.
 - **Rate limiting:** the rule "dataspace: 1000 req / 10s per IP" (Security →
   WAF → Rate limiting rules; the free plan allows one rule and only a 10 s
   period) blocks an IP for 10 s above 1,000 requests. Parquet readers make
   many small range requests (a few per file and row group), and `rclone` one
   per file: the earlier 50 per 10 s blocked ordinary DuckDB queries with 429.
-- **Read-only:** the custom rule "dataspace: read-only (GET/HEAD)" blocks
-  every other method.
+- **Read-only:** the custom rule "dataspace: read-only (GET/HEAD/OPTIONS)"
+  blocks every other method. `OPTIONS` is the browsers' CORS pre-check.
 
 ## Deploying and scheduled updates
 
