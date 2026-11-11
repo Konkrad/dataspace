@@ -16,16 +16,16 @@ name: Catalogue updates
 # package (sentinel-1, sentinel-2, ...) must give this repository the Write
 # role: package settings -> Manage Actions access.
 #
-# The schedules stay off until a manual run (workflow_dispatch) has worked.
+# R2 secrets live in the job's env: a step's `if` can't see its own `env:`.
 
 permissions:
   contents: read
   packages: write
 
 on:
-  # schedule:
-  #   - cron: "0 6 * * *"  # daily, 06:00 UTC
-  #   - cron: "0 12 2 * *" # monthly, the 2nd, 12:00 UTC
+  schedule:
+    - cron: "0 6 * * *"  # daily, 06:00 UTC
+    - cron: "0 12 2 * *" # monthly, the 2nd, 12:00 UTC
   workflow_dispatch:
     inputs:
       job:
@@ -34,15 +34,22 @@ on:
         type: choice
         options: [daily, monthly]
 
+# Daily and monthly push the same ID files: queue, don't overlap.
+concurrency:
+  group: catalogue-updates
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    env:
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
     strategy:
       fail-fast: false
       max-parallel: 1 # one mission at a time: one CDSE client
       matrix:
-        mission: [sentinel-1, sentinel-2, sentinel-3]
+        mission: [sentinel-1, sentinel-2, sentinel-3, sentinel-5p]
     steps:
       - uses: actions/checkout@v4
 
@@ -81,7 +88,6 @@ jobs:
         if: env.R2_ACCOUNT_ID != ''
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET: ${{ secrets.R2_BUCKET || 'dataspace' }}

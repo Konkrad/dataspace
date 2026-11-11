@@ -330,12 +330,12 @@ specifically, since adding columns after a COGP conversion would leave its
   `MISSION` and run `kamal deploy`. Kamal builds from the committed git state,
   so commit first. The worker stops itself when nothing is left to do.
 - **Updates:** `.github/workflows/worker.yml` runs, per mission (a matrix of
-  `sentinel-1` and `sentinel-2`, one at a time), the daily job (the worker for
+  `sentinel-1`, `sentinel-2`, `sentinel-3` and `sentinel-5p`, one at a time), the daily job (the worker for
   the last 31 days, then `sync --recent-days 31`) and the monthly job (a full
   `sync`). It pushes with the workflow's own `GITHUB_TOKEN`, so every package
   needs this repository under Package settings → Manage Actions access with
-  the Write role. The `schedule` lines are commented out until a manual run
-  has worked. Add a mission to the matrix once its backfill is done and it
+  the Write role. Daily at 06:00 UTC, monthly on the 2nd at 12:00 UTC;
+  after the sync, each mission's monthly files are merged and uploaded to R2. Add a mission to the matrix once its backfill is done and it
   has ID files.
 
 ## Development
