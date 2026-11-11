@@ -322,16 +322,29 @@ API and uploads, next to the monthly files:
 
 | File | For |
 |---|---|
-| `index.html` | the landing page: every collection, usage examples |
+| `index.html` | the landing page: the map viewer, every collection, usage examples |
+| `_viewer/…` | the map viewer's bundle (content-hashed names) |
 | `<mission>-<collection>.parquet/index.html` | the months of one collection; also lets `rclone`'s http backend and `wget -r` mirror without a key |
 | `files.txt` | one URL per line, for `wget -i` / `aria2c -i` |
 | `files.tsv` | URL, size, ETag, last-modified, for incremental mirroring |
 | `dataspace.duckdb` | a view per collection (`sentinel_1_grd`, ...) over the HTTPS URLs, plus the tables `datasets` and `files` |
 
 ```sh
-cdsemeta-index --out-dir index               # write locally (needs R2_* to list the bucket)
-cdsemeta-index --out-dir index --upload-r2   # and upload
+(cd viewer && npm ci && npm run build)       # the map viewer -> viewer/dist
+cdsemeta-index --out-dir index --viewer viewer/dist               # write locally (needs R2_* to list the bucket)
+cdsemeta-index --out-dir index --viewer viewer/dist --upload-r2   # and upload
 ```
+
+The map viewer (`viewer/`) is MapLibre with
+[`@cogp/maplibre`](https://github.com/Kanahiro/cloud-optimized-geoparquet/tree/main/js/packages/maplibre),
+which reads the COGP files in a worker and at low zoom only their coarse
+levels. It is bundled with Vite (the reader's worker can't load from a CDN:
+browsers don't run workers from another origin) under `/_viewer/`; the
+landing page finds the entry in the Vite manifest and embeds the list of
+collections and months, so the viewer needs no extra request. Basemap:
+[OpenFreeMap](https://openfreemap.org/). To try it locally, write the index
+with `--viewer`, serve the output folder (`python -m http.server`) and open
+it; the files come from the public URL (CORS).
 
 Building `dataspace.duckdb` reads every file's schema over the public URL
 (`--base-url`, default `$PUBLIC_BASE_URL` or `https://dataspace.konrad.online`;
@@ -352,6 +365,10 @@ custom domain):
   because of the cache rule "dataspace: cache everything" (edge 1 day,
   browser 4 h): the cache doesn't vary by `Origin`, so a copy cached from a
   request without one would otherwise reach browsers without CORS headers.
+- **Cache rule** "dataspace: cache everything": should only match
+  `ends_with(http.request.uri.path, ".parquet")`, so the pages, file lists and
+  `dataspace.duckdb` keep their 5-minute `Cache-Control` and new data shows up
+  soon after a run (the viewer's files carry a one-year immutable one).
 - **CORS** on the bucket, for browser apps (stac-map, shell.duckdb.org):
   `AllowedOrigins ["*"]`, methods `GET`, `HEAD`, header `range`, exposing
   `content-range`, `content-length`, `etag`, `accept-ranges`. The bucket is in

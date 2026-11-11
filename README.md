@@ -6,7 +6,8 @@ GeoParquet: footprints, sensing times, orbits, product types, S3 paths,
 checksums and **every** OData attribute. One file per collection and sensing
 month, updated daily, public, no account needed.
 
-**https://dataspace.konrad.online**
+**https://dataspace.konrad.online**: a map of every collection and month,
+the list of files, and how to use them.
 
 Query it in place with DuckDB, Python, QGIS or anything that reads Parquet
 over HTTP, or download all of it. Only the parts of a file a query needs are
@@ -54,7 +55,7 @@ Next to the data:
 
 | File | What |
 |---|---|
-| [`/`](https://dataspace.konrad.online/) | landing page: every collection, with links to its months |
+| [`/`](https://dataspace.konrad.online/) | landing page: a map of the footprints per collection and month, every collection with links to its months |
 | `<mission>-<collection>.parquet/` | the months of one collection |
 | [`dataspace.duckdb`](https://dataspace.konrad.online/dataspace.duckdb) | a DuckDB catalogue: a view per collection (`sentinel_1_grd`, `sentinel_2_l2a`, ...), plus the tables `datasets` and `files` |
 | [`files.txt`](https://dataspace.konrad.online/files.txt) | every file's URL, one per line |

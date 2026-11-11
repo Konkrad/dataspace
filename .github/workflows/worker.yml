@@ -102,7 +102,8 @@ jobs:
               --out-dir /work/merge --cache /work/cache \
               --memory-limit 4GB --upload-r2 --delete-after-upload
 
-  # The bucket's public index (HTML pages, files.txt/.tsv, dataspace.duckdb),
+  # The bucket's public index (HTML pages with the map viewer, files.txt/.tsv,
+  # dataspace.duckdb),
   # from a listing of the whole bucket, so it covers every mission. Also runs
   # when a mission failed, for the ones that did upload.
   index:
@@ -116,10 +117,18 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install .
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: viewer/package-lock.json
+      - name: Build the map viewer
+        working-directory: viewer
+        run: npm ci && npm run build
       - name: Write and upload the index
         env:
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET: ${{ secrets.R2_BUCKET || 'dataspace' }}
-        run: cdsemeta-index --out-dir "$RUNNER_TEMP/index" --upload-r2
+        run: cdsemeta-index --out-dir "$RUNNER_TEMP/index" --viewer viewer/dist --upload-r2

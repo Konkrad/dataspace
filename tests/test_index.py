@@ -35,7 +35,7 @@ def test_write_all(tmp_path):
 
     out = tmp_path / "out"
     items = index.write_all(ds, str(data), out)
-    keys = {k: c for _, k, c in items}
+    keys = {k: c for _, k, c, _ in items}
     assert keys == {"index.html": "text/html; charset=utf-8",
                     "sentinel-1-grd.parquet/index.html": "text/html; charset=utf-8",
                     "files.txt": "text/plain; charset=utf-8",
@@ -58,3 +58,31 @@ def test_write_all(tmp_path):
     assert con.sql("SELECT name, first_month, last_month, files FROM ds.datasets").fetchone() == (
         "sentinel_1_grd", "2024-05", "2024-06", 2)
     assert con.sql("SELECT count(*) FROM ds.files").fetchone() == (2,)
+
+
+def test_write_all_with_viewer(tmp_path):
+    dist = tmp_path / "dist"
+    (dist / ".vite").mkdir(parents=True)
+    (dist / "assets").mkdir()
+    (dist / "assets/main-abc.js").write_text("console.log(1)")
+    (dist / "assets/main-abc.css").write_text("body{}")
+    (dist / ".vite/manifest.json").write_text(
+        '{"src/main.js": {"file": "assets/main-abc.js", "isEntry": true, "css": ["assets/main-abc.css"]}}')
+    ds = index.datasets_from_objects([_obj("sentinel-1-grd.parquet/2024-05.parquet"),
+                                      _obj("sentinel-1-grd.parquet/2024-06.parquet")])
+    out = tmp_path / "out"
+    items = index.write_all(ds, "https://example.org/", out, duckdb_file=False, viewer_dist=dist)
+    by_key = {k: (c, cache) for _, k, c, cache in items}
+    assert by_key["_viewer/assets/main-abc.js"] == ("text/javascript; charset=utf-8", index.ASSET_CACHE)
+    assert by_key["_viewer/assets/main-abc.css"][0] == "text/css; charset=utf-8"
+    assert by_key["index.html"][1] == index.INDEX_CACHE
+    assert not any(k.startswith("_viewer/.vite") for k in by_key)
+    root = (out / "index.html").read_text()
+    assert '<script type="module" src="/_viewer/assets/main-abc.js"></script>' in root
+    assert '<link rel="stylesheet" href="/_viewer/assets/main-abc.css">' in root
+    data = root.split('<script id="datasets" type="application/json">')[1].split("</script>")[0]
+    import json
+    assert json.loads(data) == {"base": "https://example.org",
+                                "datasets": [{"id": "sentinel-1-grd", "months": ["2024-05", "2024-06"]}]}
+    # Viewer files stay out of the download lists.
+    assert "_viewer" not in (out / "files.txt").read_text()

@@ -23,9 +23,12 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import logging
 import os
+import mimetypes
 import re
+import shutil
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -42,6 +45,10 @@ DB_NAME = "dataspace.duckdb"
 KEY_RE = re.compile(r"^(?P<ds>[^/]+)\.parquet/(?P<month>\d{4}-\d{2})\.parquet$")
 # Short cache for the generated files, so a new month shows up soon after the run.
 INDEX_CACHE = "public, max-age=300"
+# The viewer's files have content hashes in their names.
+ASSET_CACHE = "public, max-age=31536000, immutable"
+VIEWER_PREFIX = "_viewer/"
+VIEWER_ENTRY = "src/main.js"
 
 
 @dataclass
@@ -174,7 +181,34 @@ def _page(title: str, body: str) -> str:
             f"<title>{html.escape(title)}</title>\n<style>{_STYLE}</style>\n</head>\n<body>\n{body}\n</body>\n</html>\n")
 
 
-def root_html(datasets: list[Dataset], base: str, generated: datetime) -> str:
+def viewer_html(datasets: list[Dataset], base: str, entry: dict) -> str:
+    """The map: controls, the map element, the collection list and the bundle (viewer/)."""
+    e = html.escape
+    data = json.dumps({"base": base.rstrip("/"),
+                       "datasets": [{"id": d.id, "months": [f.month for f in d.files]} for d in datasets]})
+    data = data.replace("</", "<\\/")  # can't end the <script> early
+    css = "".join(f'<link rel="stylesheet" href="/{VIEWER_PREFIX}{e(c)}">' for c in entry.get("css", []))
+    return f"""{css}
+<section class="viewer">
+<div class="controls">
+  <label>Collection <select id="collection"></select></label>
+  <label>Month
+    <button id="prev" title="Previous month" aria-label="Previous month">‹</button>
+    <input id="month" type="month">
+    <button id="next" title="Next month" aria-label="Next month">›</button>
+  </label>
+  <a id="file">parquet file</a>
+  <span id="status"></span>
+</div>
+<div id="map"></div>
+<p class="muted">Footprints of one collection and sensing month; click one for its products. Zoomed out, only a
+thinned-out overview of the file is loaded.</p>
+</section>
+<script id="datasets" type="application/json">{data}</script>
+<script type="module" src="/{VIEWER_PREFIX}{e(entry["file"])}"></script>"""
+
+
+def root_html(datasets: list[Dataset], base: str, generated: datetime, viewer_entry: dict | None = None) -> str:
     e = html.escape
     base = base.rstrip("/")
     rows = "\n".join(
@@ -194,6 +228,7 @@ def root_html(datasets: list[Dataset], base: str, generated: datetime) -> str:
 as GeoParquet, one file per collection and sensing month. Updated daily.
 {nfiles} files, {human(total)}. Generated {generated:%Y-%m-%d %H:%M} UTC.
 Columns, collections and more examples: <a href="https://github.com/Konkrad/dataspace#readme">documentation</a>.</p>
+{viewer_html(datasets, base, viewer_entry) if viewer_entry else ""}
 
 <h2>Collections</h2>
 <div class="scroll"><table>
@@ -263,19 +298,47 @@ Generated {generated:%Y-%m-%d %H:%M} UTC.</p>
     return _page(d.folder, body)
 
 
-def write_all(datasets: list[Dataset], base: str, out_dir: Path, *, duckdb_file: bool = True) -> list[tuple[Path, str, str]]:
-    """Write every index file under out_dir; return (path, key, content type) to upload."""
+def content_type(path: Path) -> str:
+    ctype = {".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".wasm": "application/wasm",
+             ".json": "application/json", ".map": "application/json"}.get(path.suffix)
+    ctype = ctype or mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+    return f"{ctype}; charset=utf-8" if ctype.startswith("text/") or ctype == "application/json" else ctype
+
+
+def copy_viewer(viewer_dist: Path, out_dir: Path) -> tuple[dict, list[tuple[Path, str, str, str]]]:
+    """Copy the built viewer (viewer/dist) to out_dir/_viewer/; return its entry and the files."""
+    manifest = json.loads((viewer_dist / ".vite" / "manifest.json").read_text())
+    entry = manifest[VIEWER_ENTRY]
+    items = []
+    for src in sorted(viewer_dist.rglob("*")):
+        rel = src.relative_to(viewer_dist)
+        if src.is_dir() or rel.parts[0] == ".vite":
+            continue
+        dst = out_dir / VIEWER_PREFIX / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, dst)
+        items.append((dst, VIEWER_PREFIX + rel.as_posix(), content_type(src), ASSET_CACHE))
+    return entry, items
+
+
+def write_all(datasets: list[Dataset], base: str, out_dir: Path, *, duckdb_file: bool = True,
+              viewer_dist: Path | None = None) -> list[tuple[Path, str, str, str]]:
+    """Write every index file under out_dir; return (path, key, content type, cache control) to upload."""
     now = datetime.now(timezone.utc)
     out_dir.mkdir(parents=True, exist_ok=True)
-    items: list[tuple[Path, str, str]] = []
+    items: list[tuple[Path, str, str, str]] = []
 
     def put(key: str, text: str, ctype: str) -> None:
         p = out_dir / key
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(text, encoding="utf-8")
-        items.append((p, key, ctype))
+        items.append((p, key, ctype, INDEX_CACHE))
 
-    put("index.html", root_html(datasets, base, now), "text/html; charset=utf-8")
+    entry = None
+    if viewer_dist:
+        entry, assets = copy_viewer(viewer_dist, out_dir)
+        items.extend(assets)
+    put("index.html", root_html(datasets, base, now, entry), "text/html; charset=utf-8")
     for d in datasets:
         put(f"{d.folder}index.html", folder_html(d, base, now), "text/html; charset=utf-8")
     put("files.txt", files_txt(datasets, base), "text/plain; charset=utf-8")
@@ -283,7 +346,7 @@ def write_all(datasets: list[Dataset], base: str, out_dir: Path, *, duckdb_file:
     if duckdb_file:
         db = out_dir / DB_NAME
         build_duckdb(datasets, base, db)
-        items.append((db, DB_NAME, "application/octet-stream"))
+        items.append((db, DB_NAME, "application/octet-stream", INDEX_CACHE))
     return items
 
 
@@ -293,6 +356,8 @@ def main(argv: list[str] | None = None) -> int:
                     help=f"public URL of the bucket (default: $PUBLIC_BASE_URL or {DEFAULT_BASE_URL})")
     ap.add_argument("--out-dir", type=Path, default=Path("index"), help="where the files are written")
     ap.add_argument("--no-duckdb", action="store_true", help=f"skip {DB_NAME} (it reads every file's schema)")
+    ap.add_argument("--viewer", type=Path, default=None, metavar="DIST",
+                    help="built map viewer (viewer/dist, `npm run build`) to put on the landing page")
     ap.add_argument("--upload-r2", action="store_true", help="upload the files to R2 ($R2_BUCKET)")
     args = ap.parse_args(argv)
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper(),
@@ -303,11 +368,12 @@ def main(argv: list[str] | None = None) -> int:
         log.error("no <dataset>.parquet/<YYYY-MM>.parquet files in the bucket")
         return 1
     log.info("%d collections, %d files", len(datasets), sum(len(d.files) for d in datasets))
-    items = write_all(datasets, args.base_url, args.out_dir, duckdb_file=not args.no_duckdb)
+    items = write_all(datasets, args.base_url, args.out_dir, duckdb_file=not args.no_duckdb,
+                      viewer_dist=args.viewer)
     if args.upload_r2:
-        # Folder pages and lists first, the root page last: it links to all of them.
-        for path, key, ctype in sorted(items, key=lambda i: i[1] == "index.html"):
-            r2.upload(path, key, content_type=ctype, cache_control=INDEX_CACHE)
+        # Viewer, folder pages and lists first, the root page last: it refers to all of them.
+        for path, key, ctype, cache in sorted(items, key=lambda i: i[1] == "index.html"):
+            r2.upload(path, key, content_type=ctype, cache_control=cache)
     log.info("wrote %d files to %s%s", len(items), args.out_dir, " and uploaded them" if args.upload_r2 else "")
     return 0
 
