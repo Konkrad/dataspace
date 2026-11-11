@@ -238,7 +238,7 @@ Columns, collections and more examples: <a href="https://github.com/Konkrad/data
 </tbody>
 </table></div>
 <p>Each file is <code>{e(base)}/&lt;mission&gt;-&lt;collection&gt;.parquet/&lt;YYYY-MM&gt;.parquet</code>,
-by the month of <code>content_start</code>. Downloads: <a href="files.txt">files.txt</a> (one URL per line),
+by the sensing month (<code>datetime</code>). Downloads: <a href="files.txt">files.txt</a> (one URL per line),
 <a href="files.tsv">files.tsv</a> (with size, ETag and last-modified), <a href="{DB_NAME}">{DB_NAME}</a>.</p>
 
 <h2>Query with DuckDB</h2>
@@ -247,9 +247,9 @@ by the month of <code>content_start</code>. Downloads: <a href="files.txt">files
 SHOW ALL TABLES;
 FROM ds.datasets;
 
-SELECT name, content_start, s3_path
+SELECT id, collection, datetime, assets.product.href
 FROM ds.{e(ex_view)}
-WHERE content_start &gt;= '2024-05-01' AND content_start &lt; '2024-06-01'
+WHERE datetime &gt;= '2024-05-01' AND datetime &lt; '2024-06-01'
   AND bbox.xmin &lt; 13.8 AND bbox.xmax &gt; 13.0 AND bbox.ymin &lt; 52.7 AND bbox.ymax &gt; 52.3;</code></pre>
 <p>Or read single months directly:</p>
 <pre><code>SELECT count(*) FROM '{e(base)}/{e(ex_key)}';</code></pre>
@@ -258,7 +258,7 @@ WHERE content_start &gt;= '2024-05-01' AND content_start &lt; '2024-06-01'
 <pre><code>import duckdb
 con = duckdb.connect()
 con.sql("ATTACH '{e(base)}/{DB_NAME}' AS ds (READ_ONLY)")
-df = con.sql("FROM ds.{e(ex_view)} WHERE content_start &gt;= '2024-05-01' LIMIT 1000").df()
+df = con.sql("FROM ds.{e(ex_view)} WHERE datetime &gt;= '2024-05-01' LIMIT 1000").df()
 
 import geopandas as gpd
 gdf = gpd.read_parquet("{e(base)}/{e(ex_key)}")</code></pre>

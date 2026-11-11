@@ -2,9 +2,12 @@
 
 The product metadata of every Sentinel-1, -2, -3 and -5P product in the
 [Copernicus Data Space Ecosystem](https://dataspace.copernicus.eu/) (CDSE), as
-GeoParquet: footprints, sensing times, orbits, product types, S3 paths,
-checksums and **every** OData attribute. One file per collection and sensing
-month, updated daily, public, no account needed.
+[STAC GeoParquet](https://github.com/radiantearth/stac-geoparquet-spec) with
+the item ids, collection ids and property names of CDSE's own
+[STAC API](https://stac.dataspace.copernicus.eu/v1/): footprints, sensing
+times, orbits, product types, S3 paths, checksums, and the raw OData record of
+every product. One file per collection and sensing month, updated daily,
+public, no account needed.
 
 **https://dataspace.konrad.online**: a map of every collection and month,
 the list of files, and how to use them.
@@ -17,9 +20,9 @@ fetched.
 ATTACH 'https://dataspace.konrad.online/dataspace.duckdb' AS ds (READ_ONLY);
 
 -- Sentinel-1 GRD scenes over Berlin in May 2024
-SELECT name, content_start, orbitDirection, s3_path
+SELECT id, datetime, "sat:orbit_state", assets.product.href
 FROM ds.sentinel_1_grd
-WHERE content_start >= '2024-05-01' AND content_start < '2024-06-01'
+WHERE datetime >= '2024-05-01' AND datetime < '2024-06-01'
   AND bbox.xmin < 13.8 AND bbox.xmax > 13.0 AND bbox.ymin < 52.7 AND bbox.ymax > 52.3;
 ```
 
@@ -32,10 +35,13 @@ WHERE content_start >= '2024-05-01' AND content_start < '2024-06-01'
 | Sentinel-3 | S3A, S3B | `olci`, `slstr`, `sral`, `synergy`, `mwr`, `aux`, `other` |
 | Sentinel-5P | S5P | `l1b`, `l2`, `aux`, `other` |
 
-Collections are grouped by `productType`: `grd` holds every GRD product type
+Files are grouped by `product:type`: `grd` holds every GRD product type
 (`IW_GRDH_1S`, `EW_GRDM_1S`, ...), `l2a` is `S2MSI2A`, `olci` is every `OL_*`
 type, `l2` is every `L2__*` type, `aux` the auxiliary files (orbits,
-calibration), `other` whatever fits nowhere else. The landing page lists what
+calibration), `other` whatever fits nowhere else. Each row's `collection` is
+CDSE's finer STAC collection (`sentinel-3-olci-2-lfr-ntc`,
+`sentinel-5p-l2-no2-offl`, ...), or the file's own (`sentinel-1-raw`) for
+product types CDSE has no STAC collection for. The landing page lists what
 exists, with months, file counts and sizes.
 
 ## Files
@@ -45,7 +51,7 @@ https://dataspace.konrad.online/<mission>-<collection>.parquet/<YYYY-MM>.parquet
 https://dataspace.konrad.online/sentinel-2-l2a.parquet/2024-05.parquet
 ```
 
-The month is the sensing month (`content_start`, UTC). Each file is
+The month is the sensing month (`datetime`, UTC). Each file is
 [GeoParquet](https://geoparquet.org/) 1.1 with a `bbox` covering column,
 written in the [Cloud-Optimized GeoParquet](https://github.com/Kanahiro/cloud-optimized-geoparquet)
 layout, so map viewers can load it progressively; to any other reader it is
@@ -71,29 +77,29 @@ SHOW ALL TABLES;
 FROM ds.datasets;                          -- collections, months, sizes
 
 -- Sentinel-2 L2A over an area, low cloud cover
-SELECT name, content_start, cloudCover, s3_path
+SELECT id, datetime, "eo:cloud_cover", "grid:code", assets.product.href
 FROM ds.sentinel_2_l2a
-WHERE content_start >= '2024-06-01' AND content_start < '2024-09-01'
-  AND cloudCover < 20
+WHERE datetime >= '2024-06-01' AND datetime < '2024-09-01'
+  AND "eo:cloud_cover" < 20
   AND bbox.xmin < 13.8 AND bbox.xmax > 13.0 AND bbox.ymin < 52.7 AND bbox.ymax > 52.3;
 
 -- one month directly, without the catalogue
 SELECT count(*) FROM 'https://dataspace.konrad.online/sentinel-1-grd.parquet/2024-05.parquet';
 ```
 
-Filter on `content_start` so only the matching months are read, and on
-`bbox` so only the matching parts of them. To find a product by name, its
-sensing date is in the name, so read that month:
+Filter on `datetime` so only the matching months are read, and on `bbox` so
+only the matching parts of them. Property names with a `:` need double quotes
+in SQL. To find a product, its sensing date is in its id, so read that month:
 
 ```sql
 FROM 'https://dataspace.konrad.online/sentinel-1-grd.parquet/2016-10.parquet'
-WHERE name = 'S1A_IW_GRDH_1SDV_20161001T002657_20161001T002726_013289_0152C9_731D_COG.SAFE';
+WHERE id = 'S1A_IW_GRDH_1SDV_20161001T002657_20161001T002726_013289_0152C9_731D_COG';
 ```
 
 A local copy of a collection:
 
 ```sql
-COPY (FROM ds.sentinel_1_grd WHERE content_start >= '2024-01-01')
+COPY (FROM ds.sentinel_1_grd WHERE datetime >= '2024-01-01')
 TO 's1_grd_2024.parquet';
 ```
 
@@ -104,7 +110,7 @@ import duckdb
 
 con = duckdb.connect()
 con.sql("ATTACH 'https://dataspace.konrad.online/dataspace.duckdb' AS ds (READ_ONLY)")
-df = con.sql("FROM ds.sentinel_1_grd WHERE content_start >= '2024-05-01' LIMIT 1000").df()
+df = con.sql("FROM ds.sentinel_1_grd WHERE datetime >= '2024-05-01' LIMIT 1000").df()
 ```
 
 ```python
@@ -158,19 +164,35 @@ since a previous download.
 
 ## Columns
 
+Each row is a STAC item, with the names and values CDSE's STAC API uses for
+the same product. Checked value by value against CDSE items; the exceptions
+are noted below.
+
 | Column(s) | Notes |
 |---|---|
-| `id`, `name` | the CDSE product id and name |
-| `s3_path` | the product in CDSE's `s3://eodata/...` |
-| `content_start`, `content_end` | sensing start and end, `timestamp with time zone`, UTC |
-| `origin_date`, `publication_date`, `modification_date`, `eviction_date`, `ingestion_date` | |
-| `content_type`, `content_length`, `online` | |
-| `checksum_md5`, `checksum_blake3`, `quicklook_url` | |
-| one column per OData attribute | e.g. Sentinel-1: `orbitNumber`, `relativeOrbitNumber`, `orbitDirection`, `productType`, `polarisationChannels`, `swathIdentifier`, `timeliness`; Sentinel-2: `cloudCover`, `tileId`, ... Types follow OData. Columns differ per mission and can differ between months. |
-| `attributes_json`, `assets_json`, `locations_json`, `checksum_json` | the raw OData records, so nothing is lost |
-| `odata_found` | `false` for products in the CDSE catalogue CSVs that OData doesn't return |
-| `geometry` | the footprint, WKB, OGC:CRS84 (from `GeoFootprint`, else `Footprint`, else the CSV's bbox) |
-| `bbox` | `xmin`, `ymin`, `xmax`, `ymax` of the footprint, for fast spatial filters |
+| `type`, `stac_version`, `stac_extensions`, `links` | STAC item fields; `links` has a `via` link to the product in CDSE's OData API |
+| `id` | the product name without `.SAFE` / `.SEN3` / `.nc`, as CDSE's item id |
+| `collection` | CDSE's STAC collection id (see [Collections](#collections)) |
+| `geometry`, `bbox` | the footprint (WKB, OGC:CRS84) and its `xmin`/`ymin`/`xmax`/`ymax`, for fast spatial filters |
+| `datetime`, `start_datetime`, `end_datetime` | sensing start and end, UTC; `datetime` is the start |
+| `created`, `published`, `updated`, `expires` | from OData's origin, publication, modification and eviction dates; `expires` is 2262-01-01 for products that don't expire, as in CDSE |
+| `constellation`, `platform`, `instruments` | `sentinel-2`, `sentinel-2b`, `["msi"]` |
+| `sat:*` | `sat:orbit_state`, `sat:absolute_orbit`, `sat:relative_orbit`, `sat:orbit_cycle`, `sat:platform_international_designator`, `sat:anx_datetime` (Sentinel-1) |
+| `sar:*` | Sentinel-1: `sar:instrument_mode`, `sar:polarizations`, `sar:beam_ids`, `sar:frequency_band`, `sar:center_frequency`, `sar:observation_direction` |
+| `eo:cloud_cover` | Sentinel-2 and -3 |
+| `grid:code`, `gsd` | Sentinel-2: `MGRS-32UQD`, 10 |
+| `product:type`, `product:timeliness`, `product:timeliness_category` | `IW_GRDH_1S`, `PT24H`, `Fast-24h` |
+| `processing:level`, `processing:datetime`, `processing:facility`, `processing:version`, `processing:software` | `L1`, ...; `processing:software` is `{processor: version}` |
+| `eopf:*` | `eopf:origin_datetime`; Sentinel-1 `eopf:datatake_id`, `eopf:instrument_configuration_id`; Sentinel-2 `eopf:datatake_id`, `eopf:datastrip_id`, `eopf:instrument_mode` |
+| `assets` | `product`: the product in CDSE's `s3://eodata/...`, with `file:size`; `thumbnail`: the quicklook |
+| `cdse:*` | what STAC has no place for: `cdse:id` (OData product id), `cdse:online`, `cdse:odata_found`, `cdse:ingestion_date`, `cdse:checksum_md5`, `cdse:checksum_blake3`, and the raw OData record as JSON: `cdse:attributes`, `cdse:assets`, `cdse:locations` |
+
+Not included: properties CDSE reads from the product files rather than
+OData (`view:*`, `sar:pixel_spacing_*`, `sar:resolution_*`, `eo:snow_cover`,
+`gsd` outside Sentinel-2). Where CDSE's own items differ from OData, the
+OData value is kept: CDSE's `processing:software` adds its indexing tool,
+its Sentinel-1 GRD COG items describe the COG conversion rather than the
+processing, and its Sentinel-5P L1B times differ from OData's.
 
 ## Freshness
 
@@ -186,8 +208,8 @@ changed.
   not in the CDSE browser or OData. ETAD stays.
 - **Products not in OData:** about 1–4% of the products the CDSE catalogue
   CSVs list are not returned by OData. They are kept, built from the CSV
-  alone (name, S3 path, dates, size, md5, bbox as geometry), with
-  `odata_found = false`.
+  alone (id, S3 path, dates, size, md5, bbox as geometry), with
+  `cdse:odata_found = false`.
 - **CLMS** (Copernicus Land Monitoring Service) collections are not included.
 
 ## Sources and licence

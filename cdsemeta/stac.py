@@ -1,26 +1,32 @@
-"""Convert a merged cdsemeta GeoParquet into STAC GeoParquet.
+"""STAC GeoParquet with the property names and values of CDSE's own STAC API.
 
-Maps the raw OData attribute columns cdsemeta already stores (``orbitNumber``,
-``orbitDirection``, ``polarisationChannels``, ``productType``, ...) into the
-STAC properties used by CDSE's own STAC API
-(https://stac.dataspace.copernicus.eu/), following
-https://github.com/radiantearth/stac-geoparquet-spec.
+The merged files hold the raw OData attributes (``orbitNumber``,
+``orbitDirection``, ``polarisationChannels``, ...). This maps them, as one
+DuckDB ``SELECT`` per file, to the STAC properties
+https://stac.dataspace.copernicus.eu/v1/ uses for the same products, following
+https://github.com/radiantearth/stac-geoparquet-spec:
 
-Everything here runs as vectorized ``pyarrow.compute`` kernels over whole
-columns (never a per-row Python callback), so it scales to the full ~18M-row
-Sentinel-1 merge the same way ``transform.py`` and ``geoparquet.py`` do for
-the per-CSV files. The one exception, ``processing:software``, builds a small
-per-row dict because its *keys* vary by row -- there's no column-level
-operation that expresses "each row gets an object with a different key name".
+- ``id`` is the product name without ``.SAFE``/``.SEN3``/``.nc``, as CDSE's
+  item id; ``collection`` is CDSE's (fine-grained) collection id, derived from
+  the product type and timeliness (``sentinel-3-olci-2-lfr-ntc``), or our own
+  ``<mission>-<bucket>`` for product types CDSE has no STAC collection for
+  (Sentinel-1 RAW, auxiliary files, some Sentinel-5P products).
+- ``sat:``, ``sar:``, ``eo:``, ``grid:``, ``product:``, ``processing:`` and
+  ``eopf:`` properties, ``created``/``published``/``updated``/``expires``.
+  Properties CDSE derives from the product files themselves (``view:*``,
+  ``sar:pixel_spacing_*``, ``gsd`` outside Sentinel-2) are not in OData and
+  are left out.
+- An asset ``product`` (the product's ``s3://eodata/...`` path, size) and
+  ``thumbnail`` (the quicklook), a ``via`` link to the OData product.
+- What STAC has no place for stays under ``cdse:`` (OData id, online, the raw
+  attribute/asset/location JSON), so nothing is lost.
 
-Each extension block below only runs when its source columns are present, so
-this degrades gracefully for missions other than Sentinel-1 instead of
-crashing -- but the SAR/sat/product/processing/EOPF mapping has only been
-verified against real Sentinel-1 OData attributes and CDSE STAC items.
+Checked value by value against CDSE STAC items of the same products (see
+tests/test_stac.py). Rows CDSE's OData didn't return (``cdse:odata_found =
+false``) are kept, with only what the catalogue CSV has.
 
-The output is run back through ``cogp convert`` (see ``cdsemeta.cogp``), since
-adding columns after COGP layout was applied would leave its ``geo.lod``
-metadata describing stale row-group boundaries.
+The result has to go through ``cogp convert`` again (``cdsemeta.cogp``):
+COGP's ``geo.lod`` metadata describes row groups, which change on rewrite.
 """
 
 from __future__ import annotations
@@ -30,385 +36,335 @@ import json
 import logging
 import os
 import sys
-from datetime import date
 from pathlib import Path
 
-import numpy as np
-import pyarrow as pa
-import pyarrow.compute as pc
+import duckdb
 import pyarrow.parquet as pq
 
-from . import __version__
+from . import __version__, r2
 from .cogp import convert_to_cogp
-from .config import Config
-from .registry import Registry
 
 log = logging.getLogger("cdsemeta.stac")
 
 STAC_VERSION = "1.1.0"
 STAC_GEOPARQUET_VERSION = "1.1.0"
 
-# Sentinel-1A/B/C/D COSPAR/international designators. Fixed per satellite and
-# not present in the OData Attributes cdsemeta stores; confirmed against
-# real items from https://stac.dataspace.copernicus.eu/v1/.
-PLATFORM_DESIGNATORS = {
-    "A": "2014-016A",
-    "B": "2016-025A",
-    "C": "2024-235A",
-    "D": "2025-251A",
-}
-
-# OData `timeliness` category -> ISO 8601 duration. Confirmed against real
-# CDSE STAC items; only these two categories occur for Sentinel-1 GRD/SLC/OCN.
-TIMELINESS_DURATION = {
-    "NRT-3h": "PT3H",
-    "Fast-24h": "PT24H",
-}
-
-PROCESSING_LEVEL = {"LEVEL0": "L0", "LEVEL1": "L1", "LEVEL2": "L2"}
-
-STAC_EXTENSION_SCHEMAS = {
-    "sar": "https://stac-extensions.github.io/sar/v1.3.0/schema.json",
+EXTENSIONS = {
     "sat": "https://stac-extensions.github.io/sat/v1.1.0/schema.json",
+    "sar": "https://stac-extensions.github.io/sar/v1.3.0/schema.json",
+    "eo": "https://stac-extensions.github.io/eo/v2.0.0/schema.json",
+    "grid": "https://stac-extensions.github.io/grid/v1.1.0/schema.json",
     "product": "https://stac-extensions.github.io/product/v1.0.0/schema.json",
     "processing": "https://stac-extensions.github.io/processing/v1.2.0/schema.json",
     "eopf": "https://cs-si.github.io/eopf-stac-extension/v1.2.0/schema.json",
+    "file": "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+    "timestamps": "https://stac-extensions.github.io/timestamps/v1.1.0/schema.json",
+}
+MISSION_EXTENSIONS = {
+    "sentinel-1": ("sat", "sar", "product", "processing", "eopf", "file", "timestamps"),
+    "sentinel-2": ("sat", "eo", "grid", "product", "processing", "eopf", "file", "timestamps"),
+    "sentinel-3": ("sat", "eo", "product", "processing", "eopf", "file", "timestamps"),
+    "sentinel-5p": ("sat", "product", "processing", "eopf", "file", "timestamps"),
 }
 
-ASSET_STRUCT = pa.struct([
-    ("href", pa.string()),
-    ("title", pa.string()),
-    ("description", pa.string()),
-    ("type", pa.string()),
-    ("roles", pa.list_(pa.string())),
-])
-LINK_STRUCT = pa.struct([
-    ("href", pa.string()),
-    ("rel", pa.string()),
-    ("type", pa.string()),
-    ("title", pa.string()),
-])
+# COSPAR ids, as CDSE's sat:platform_international_designator (checked per satellite).
+DESIGNATORS = {
+    "sentinel-1a": "2014-016A", "sentinel-1b": "2016-025A", "sentinel-1c": "2024-235A", "sentinel-1d": "2025-251A",
+    "sentinel-2a": "2015-028A", "sentinel-2b": "2017-013A", "sentinel-2c": "2024-157A",
+    "sentinel-3a": "2016-011A", "sentinel-3b": "2018-039A",
+    "sentinel-5p": "2017-064A",
+}
+
+# CDSE's Sentinel STAC collections that a product type can map to. A derived
+# id outside this set falls back to our own bucket id.
+CDSE_COLLECTIONS = frozenset("""
+sentinel-1-etad sentinel-1-grd sentinel-1-ocn sentinel-1-ocn-wv sentinel-1-slc sentinel-1-slc-wv
+sentinel-2-l1c sentinel-2-l2a
+sentinel-3-olci-1-efr-nrt sentinel-3-olci-1-efr-ntc sentinel-3-olci-1-err-nrt sentinel-3-olci-1-err-ntc
+sentinel-3-olci-2-lfr-nrt sentinel-3-olci-2-lfr-ntc sentinel-3-olci-2-lrr-nrt sentinel-3-olci-2-lrr-ntc
+sentinel-3-olci-2-wfr-nrt sentinel-3-olci-2-wfr-ntc sentinel-3-olci-2-wrr-nrt sentinel-3-olci-2-wrr-ntc
+sentinel-3-sl-1-rbt-nrt sentinel-3-sl-1-rbt-ntc sentinel-3-sl-2-aod-nrt sentinel-3-sl-2-frp-nrt sentinel-3-sl-2-frp-ntc
+sentinel-3-sl-2-lst-nrt sentinel-3-sl-2-lst-ntc sentinel-3-sl-2-wst-nrt sentinel-3-sl-2-wst-ntc
+sentinel-3-sr-1-sra-a-nrt sentinel-3-sr-1-sra-a-ntc sentinel-3-sr-1-sra-a-stc sentinel-3-sr-1-sra-ntc
+sentinel-3-sr-2-lan-hy-nrt sentinel-3-sr-2-lan-hy-ntc sentinel-3-sr-2-lan-hy-stc
+sentinel-3-sr-2-lan-li-nrt sentinel-3-sr-2-lan-li-ntc sentinel-3-sr-2-lan-li-stc sentinel-3-sr-2-lan-ntc
+sentinel-3-sr-2-lan-si-nrt sentinel-3-sr-2-lan-si-ntc sentinel-3-sr-2-lan-si-stc
+sentinel-3-sr-2-wat-nrt sentinel-3-sr-2-wat-ntc sentinel-3-sr-2-wat-stc
+sentinel-3-syn-2-aod-ntc sentinel-3-syn-2-syn-ntc sentinel-3-syn-2-syn-stc sentinel-3-syn-2-v10-ntc
+sentinel-3-syn-2-v10-stc sentinel-3-syn-2-vg1-ntc sentinel-3-syn-2-vg1-stc sentinel-3-syn-2-vgp-ntc sentinel-3-syn-2-vgp-stc
+sentinel-5p-l1-ra-bd1-nrti sentinel-5p-l1-ra-bd1-offl sentinel-5p-l1-ra-bd1-rpro sentinel-5p-l1-ra-bd2-nrti
+sentinel-5p-l1-ra-bd2-offl sentinel-5p-l1-ra-bd2-rpro sentinel-5p-l1-ra-bd3-nrti sentinel-5p-l1-ra-bd3-offl
+sentinel-5p-l1-ra-bd3-rpro sentinel-5p-l1-ra-bd4-nrti sentinel-5p-l1-ra-bd4-offl sentinel-5p-l1-ra-bd4-rpro
+sentinel-5p-l1-ra-bd5-nrti sentinel-5p-l1-ra-bd5-offl sentinel-5p-l1-ra-bd5-rpro sentinel-5p-l1-ra-bd6-nrti
+sentinel-5p-l1-ra-bd6-offl sentinel-5p-l1-ra-bd6-rpro sentinel-5p-l1-ra-bd7-nrti sentinel-5p-l1-ra-bd7-offl
+sentinel-5p-l1-ra-bd7-rpro sentinel-5p-l1-ra-bd8-nrti sentinel-5p-l1-ra-bd8-offl sentinel-5p-l1-ra-bd8-rpro
+sentinel-5p-l2-aer-ai-nrti sentinel-5p-l2-aer-ai-offl sentinel-5p-l2-aer-ai-rpro sentinel-5p-l2-aer-lh-nrti
+sentinel-5p-l2-aer-lh-offl sentinel-5p-l2-aer-lh-rpro sentinel-5p-l2-ch4-nrti sentinel-5p-l2-ch4-offl
+sentinel-5p-l2-ch4-rpro sentinel-5p-l2-cloud-nrti sentinel-5p-l2-cloud-offl sentinel-5p-l2-cloud-rpro
+sentinel-5p-l2-co-nrti sentinel-5p-l2-co-offl sentinel-5p-l2-co-rpro sentinel-5p-l2-hcho-nrti sentinel-5p-l2-hcho-offl
+sentinel-5p-l2-hcho-rpro sentinel-5p-l2-no2-nrti sentinel-5p-l2-no2-offl sentinel-5p-l2-no2-rpro
+sentinel-5p-l2-np-bd3-offl sentinel-5p-l2-np-bd3-rpro sentinel-5p-l2-np-bd6-offl sentinel-5p-l2-np-bd6-rpro
+sentinel-5p-l2-np-bd7-offl sentinel-5p-l2-np-bd7-rpro sentinel-5p-l2-o3-nrti sentinel-5p-l2-o3-offl
+sentinel-5p-l2-o3-pr-nrti sentinel-5p-l2-o3-pr-offl sentinel-5p-l2-o3-pr-rpro sentinel-5p-l2-o3-rpro
+sentinel-5p-l2-o3-tcl-nrti sentinel-5p-l2-o3-tcl-offl sentinel-5p-l2-o3-tcl-rpro sentinel-5p-l2-so2-nrti
+sentinel-5p-l2-so2-offl sentinel-5p-l2-so2-rpro
+""".split())
+
+# Columns of the merged files that become STAC fields or cdse:* and aren't copied as they are.
+RAW_ONLY = {"overviews"}  # COGP's, rebuilt by cogp convert
 
 
-def _lookup(col: pa.Array, mapping: dict, default: pa.Array | pa.Scalar | None = None) -> pa.Array:
-    """Chained ``if_else`` over a small fixed mapping (few keys, any row count).
+def _q(s: str) -> str:
+    return "'" + s.replace("'", "''") + "'"
 
-    Vectorized per key -- the Python loop is over ``mapping``, not over rows.
+
+def _in_list(values) -> str:
+    return "[" + ", ".join(_q(v) for v in sorted(values)) + "]"
+
+
+def select_sql(columns: set[str], mission: str, bucket_id: str) -> tuple[str, list[str]]:
+    """The SELECT list mapping one merged file to STAC, and the extensions it uses.
+
+    ``columns`` are the input's columns (they differ per mission and month);
+    a missing source column gives NULL.
     """
-    result = default if default is not None else pa.scalar(None, type=pa.string())
-    for key, value in mapping.items():
-        result = pc.if_else(pc.equal(col, key), pa.scalar(value), result)
-    return result
+    def c(name: str, cast: str = "VARCHAR") -> str:
+        return f'"{name}"' if name in columns else f"NULL::{cast}"
+
+    pt = c("productType")
+    platform = f"lower({c('platformShortName')}) || lower(coalesce({c('platformSerialIdentifier')}, ''))"
+    designators = "MAP {" + ", ".join(f"{_q(k)}: {_q(v)}" for k, v in DESIGNATORS.items()) + "}"
+    rest = "lower(regexp_replace(trim({x}, '_'), '_+', '-', 'g'))"
+
+    if mission == "sentinel-1":
+        derived = f"""CASE
+            WHEN {pt} LIKE '%GRD%' THEN 'sentinel-1-grd'
+            WHEN {pt} LIKE 'WV_SLC%' THEN 'sentinel-1-slc-wv'
+            WHEN {pt} LIKE '%SLC%' THEN 'sentinel-1-slc'
+            WHEN {pt} LIKE 'WV_OCN%' THEN 'sentinel-1-ocn-wv'
+            WHEN {pt} LIKE '%OCN%' THEN 'sentinel-1-ocn'
+            WHEN {pt} LIKE '%ETA%' THEN 'sentinel-1-etad' END"""
+        level = f"CASE WHEN {pt} LIKE '%ETA%' THEN 'L1' ELSE 'L' || nullif(regexp_extract({pt}, '_(\\d)S', 1), '') END"
+        timeliness = {"NRT-3h": "PT3H", "Fast-24h": "PT24H"}
+        tl_dur = "CASE " + " ".join(f"WHEN {c('timeliness')} = {_q(k)} THEN {_q(v)}" for k, v in timeliness.items()) + " END"
+        tl_cat = f"CASE WHEN {c('timeliness')} IN {tuple(timeliness)} THEN {c('timeliness')} END"
+        instruments = "['sar']"
+    elif mission == "sentinel-2":
+        derived = f"CASE {pt} WHEN 'S2MSI1C' THEN 'sentinel-2-l1c' WHEN 'S2MSI2A' THEN 'sentinel-2-l2a' END"
+        level = f"'L' || nullif(regexp_extract({pt}, 'MSI(\\d)', 1), '')"
+        tl_dur = f"CASE WHEN {pt} LIKE 'S2MSI%' THEN 'PT24H' END"
+        tl_cat = f"CASE WHEN {pt} LIKE 'S2MSI%' THEN 'NRT' END"
+        instruments = "['msi']"
+    elif mission == "sentinel-3":
+        m = f"regexp_extract({pt}, '^(OL|SL|SR|SY)_(\\d)_(.+)$', ['ins', 'lvl', 'rest'])"
+        suffix = f"CASE {c('timeliness')} WHEN 'NR' THEN 'nrt' WHEN 'NT' THEN 'ntc' WHEN 'ST' THEN 'stc' END"
+        ins = f"CASE {m}.ins WHEN 'OL' THEN 'olci' WHEN 'SL' THEN 'sl' WHEN 'SR' THEN 'sr' WHEN 'SY' THEN 'syn' END"
+        derived = (f"'sentinel-3-' || {ins} || '-' || {m}.lvl || '-' || "
+                   f"{rest.format(x=f'{m}.rest')} || '-' || {suffix}")
+        level = f"'L' || nullif(regexp_extract({pt}, '^[A-Z]{{2}}_(\\d)_', 1), '')"
+        tl_dur = f"CASE {c('timeliness')} WHEN 'NR' THEN 'PT3H' WHEN 'NT' THEN 'P1M' WHEN 'ST' THEN 'PT48H' END"
+        tl_cat = f"CASE WHEN {c('timeliness')} IN ('NR', 'NT', 'ST') THEN {c('timeliness')} END"
+        instruments = (f"CASE WHEN {pt} LIKE 'SY\\_%' ESCAPE '\\' THEN ['olci', 'slstr'] "
+                       f"ELSE [lower({c('instrumentShortName')})] END")
+    elif mission == "sentinel-5p":
+        m = f"regexp_extract({pt}, '^(L1B|L2_)_(.+)$', ['lvl', 'rest'])"
+        derived = (f"'sentinel-5p-' || CASE {m}.lvl WHEN 'L1B' THEN 'l1' ELSE 'l2' END || '-' || "
+                   f"{rest.format(x=f'{m}.rest')} || '-' || lower({c('processingMode')})")
+        level = f"'L' || nullif(regexp_extract({pt}, '^L(\\d)', 1), '')"
+        tl_dur = f"CASE {c('processingMode')} WHEN 'OFFL' THEN 'PT12H' WHEN 'NRTI' THEN 'PT3H' END"
+        tl_cat = f"CASE WHEN {c('processingMode')} IN ('OFFL', 'NRTI') THEN {c('processingMode')} END"
+        instruments = "['tropomi']"
+    else:
+        raise ValueError(f"no STAC mapping for {mission}")
+
+    collection = (f"CASE WHEN ({derived}) IN (SELECT unnest({_in_list(CDSE_COLLECTIONS)})) "
+                  f"THEN ({derived}) ELSE {_q(bucket_id)} END")
+    version = c("processorVersion")
+    if mission == "sentinel-1":  # 003.71 -> 03.71, as CDSE
+        version = f"regexp_replace({version}, '^0(\\d\\d\\.)', '\\1')"
+    if mission == "sentinel-5p":  # 020901 -> 02.09.01, as CDSE
+        version = (f"CASE WHEN regexp_matches({version}, '^\\d{{6}}$') THEN substr({version}, 1, 2) || '.' || "
+                   f"substr({version}, 3, 2) || '.' || substr({version}, 5, 2) ELSE {version} END")
+    s3 = c("s3_path")
+    href = (f"CASE WHEN {s3} LIKE 's3://%' THEN {s3} WHEN {s3} LIKE '/%' THEN 's3:/' || {s3} "
+            f"WHEN {s3} IS NOT NULL THEN 's3://' || {s3} END")
+    beam_ids = (f"CASE WHEN {pt} LIKE '%GRD%' OR {pt} LIKE '%RAW%' OR {c('swathIdentifier')} IS NULL THEN NULL "
+                f"WHEN NOT regexp_matches({c('swathIdentifier')}, '\\d') THEN NULL "
+                f"ELSE list_transform(string_split_regex(trim({c('swathIdentifier')}), '[ ,]+'), x -> lower(x)) END")
+    facility = f"coalesce({c('processingCenter')}, {c('origin')})" if mission == "sentinel-2" else c("processingCenter")
+    is_s1 = mission == "sentinel-1"
+    is_s2 = mission == "sentinel-2"
+
+    fields = [
+        "'Feature' AS type",
+        f"{_q(STAC_VERSION)} AS stac_version",
+        f"{_in_list(EXTENSIONS[e] for e in MISSION_EXTENSIONS[mission])} AS stac_extensions",
+        f"regexp_replace({c('name')}, '\\.(SAFE|SEN3|nc|NC|zip|EOF|TGZ|tgz)$', '') AS id",
+        f"{collection} AS collection",
+        "geometry",
+        "bbox",
+        f"{c('content_start', 'TIMESTAMPTZ')} AS datetime",
+        f"{c('content_start', 'TIMESTAMPTZ')} AS start_datetime",
+        f"{c('content_end', 'TIMESTAMPTZ')} AS end_datetime",
+        f"{c('origin_date', 'TIMESTAMPTZ')} AS created",
+        f"{c('publication_date', 'TIMESTAMPTZ')} AS published",
+        f"{c('modification_date', 'TIMESTAMPTZ')} AS updated",
+        # 9999-12-31 means "never"; CDSE writes 2262-01-01 (the latest date pandas can hold).
+        f"CASE WHEN year({c('eviction_date', 'TIMESTAMPTZ')}) >= 2262 THEN TIMESTAMPTZ '2262-01-01 00:00:00+00' "
+        f"ELSE {c('eviction_date', 'TIMESTAMPTZ')} END AS expires",
+        f"lower({c('platformShortName')}) AS constellation",
+        f"nullif({platform}, '') AS platform",
+        f"{instruments} AS instruments",
+        f"lower({c('orbitDirection')}) AS \"sat:orbit_state\"",
+        f"{c('orbitNumber', 'BIGINT')} AS \"sat:absolute_orbit\"",
+        f"{c('relativeOrbitNumber', 'BIGINT')} AS \"sat:relative_orbit\"",
+        f"{c('cycleNumber', 'BIGINT')} AS \"sat:orbit_cycle\"",
+        f"{designators}[{platform}] AS \"sat:platform_international_designator\"",
+        f"regexp_replace({pt}, '-COG$', '') AS \"product:type\"",
+        f"{tl_dur} AS \"product:timeliness\"",
+        f"{tl_cat} AS \"product:timeliness_category\"",
+        f"{level} AS \"processing:level\"",
+        f"{c('processingDate', 'TIMESTAMPTZ')} AS \"processing:datetime\"",
+        f"nullif(nullif({facility}, '[]'), '') AS \"processing:facility\"",
+        f"{version} AS \"processing:version\"",
+        f"CASE WHEN {c('processorName')} IS NOT NULL AND {c('processorVersion')} IS NOT NULL "
+        f"THEN MAP([{c('processorName')}], [{version}]) END AS \"processing:software\"",
+        f"{c('origin_date', 'TIMESTAMPTZ')} AS \"eopf:origin_datetime\"",
+    ]
+    if is_s1:
+        mode = c("operationalMode")
+        fields += [
+            f"{mode} AS \"sar:instrument_mode\"",
+            f"string_split({c('polarisationChannels')}, '&') AS \"sar:polarizations\"",
+            f"CASE WHEN {mode} IS NOT NULL THEN 'C' END AS \"sar:frequency_band\"",
+            f"CASE WHEN {mode} IS NOT NULL THEN 5.405::DOUBLE END AS \"sar:center_frequency\"",
+            # startTimeFromAscendingNode is in ms (matches CDSE to < 1 ms).
+            f"{c('content_start', 'TIMESTAMPTZ')} - to_milliseconds(CAST({c('startTimeFromAscendingNode', 'DOUBLE')} AS BIGINT)) "
+            f"AS \"sat:anx_datetime\"",
+            f"CASE WHEN {mode} IS NOT NULL THEN 'right' END AS \"sar:observation_direction\"",
+            f"{beam_ids} AS \"sar:beam_ids\"",
+            f"CAST({c('datatakeID', 'BIGINT')} AS VARCHAR) AS \"eopf:datatake_id\"",
+            f"{c('instrumentConfigurationID', 'BIGINT')} AS \"eopf:instrument_configuration_id\"",
+        ]
+    if is_s2:
+        fields += [
+            f"{c('productGroupId')} AS \"eopf:datatake_id\"",
+            f"{c('datastripId')} AS \"eopf:datastrip_id\"",
+            f"{c('operationalMode')} AS \"eopf:instrument_mode\"",
+            f"'MGRS-' || {c('tileId')} AS \"grid:code\"",
+            f"CASE WHEN {pt} LIKE 'S2MSI%' THEN 10 END AS gsd",
+        ]
+    if mission in ("sentinel-2", "sentinel-3"):
+        cc = c("cloudCover", "DOUBLE")
+        fields.append(f"{'round(' + cc + ', 2)' if is_s2 else cc} AS \"eo:cloud_cover\"")
+    fields += [
+        f"""{{'product': {{'href': {href}, 'title': 'Product', 'type': 'application/x-directory',
+              'roles': ['data'], 'file:size': {c('content_length', 'BIGINT')}}},
+             'thumbnail': CASE WHEN {c('quicklook_url')} IS NOT NULL THEN
+              {{'href': {c('quicklook_url')}, 'title': 'Quicklook', 'type': 'image/jpeg', 'roles': ['thumbnail']}} END
+           }} AS assets""",
+        f"""CASE WHEN {c('id')} IS NOT NULL THEN [{{'rel': 'via', 'type': 'application/json', 'title': 'CDSE OData product',
+              'href': 'https://catalogue.dataspace.copernicus.eu/odata/v1/Products(' || {c('id')} || ')'}}]
+           ELSE [] END AS links""",
+        f"{c('id')} AS \"cdse:id\"",
+        f"{c('odata_found', 'BOOLEAN')} AS \"cdse:odata_found\"",
+        f"{c('online', 'BOOLEAN')} AS \"cdse:online\"",
+        f"{c('ingestion_date', 'TIMESTAMPTZ')} AS \"cdse:ingestion_date\"",
+        f"{c('checksum_md5')} AS \"cdse:checksum_md5\"",
+        f"{c('checksum_blake3')} AS \"cdse:checksum_blake3\"",
+        f"{c('attributes_json')} AS \"cdse:attributes\"",
+        f"{c('assets_json')} AS \"cdse:assets\"",
+        f"{c('locations_json')} AS \"cdse:locations\"",
+    ]
+    return ",\n  ".join(fields), list(MISSION_EXTENSIONS[mission])
 
 
-def _combine(arr: pa.Array | pa.ChunkedArray) -> pa.Array:
-    return arr.combine_chunks() if isinstance(arr, pa.ChunkedArray) else arr
+def mission_of(bucket_id: str) -> str:
+    """``sentinel-5p-l2`` -> ``sentinel-5p``."""
+    return bucket_id.rsplit("-", 1)[0]
 
 
-def _list_wrap(values: pa.Array, valid: pa.Array) -> pa.Array:
-    """One-element list per valid row, null list per invalid row."""
-    valid_np = _combine(valid).to_numpy(zero_copy_only=False)
-    offsets = np.zeros(len(valid_np) + 1, dtype=np.int32)
-    np.cumsum(valid_np.astype(np.int32), out=offsets[1:])
-    filtered = _combine(values.filter(valid))
-    return pa.ListArray.from_arrays(pa.array(offsets), filtered, mask=pa.array(~valid_np))
+def convert(src: str | Path, out: Path, bucket_id: str, *, memory_limit: str | None = None,
+            tmp_dir: Path | None = None, cogp: bool = True) -> int:
+    """Write the STAC GeoParquet of one merged file (a path or URL) to ``out``; return its rows."""
+    mission = mission_of(bucket_id)
+    con = duckdb.connect()
+    con.execute("SET preserve_insertion_order = true")
+    if memory_limit:
+        con.execute(f"SET memory_limit = '{memory_limit}'")
+    if tmp_dir:
+        con.execute(f"SET temp_directory = '{tmp_dir}'")
+    src_sql = _q(str(src))
+    columns = {r[0] for r in con.execute(f"DESCRIBE SELECT * FROM read_parquet({src_sql})").fetchall()}
+    geo_raw = con.execute(
+        f"SELECT value FROM parquet_kv_metadata({src_sql}) WHERE decode(key) = 'geo'").fetchone()
+    if geo_raw is None:
+        raise ValueError(f"{src}: no GeoParquet metadata")
+    geo = json.loads(bytes(geo_raw[0]).decode())
+    geo.pop("lod", None)  # COGP's, rebuilt by cogp convert
+    geo["creator"] = {"library": "cdsemeta", "version": __version__}
+    select, _ = select_sql(columns - RAW_ONLY, mission, bucket_id)
+    stac_meta = {"version": STAC_GEOPARQUET_VERSION}
+    kv = {"geo": json.dumps(geo), "stac-geoparquet": json.dumps(stac_meta)}
+    kv_sql = "{" + ", ".join(f"{k.replace('-', '_')}: {_q(v)}" for k, v in kv.items()) + "}"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    part = out.with_suffix(out.suffix + ".part")
+    con.execute(f"""
+        COPY (SELECT {select} FROM read_parquet({src_sql}))
+        TO {_q(str(part))} (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE 100000, KV_METADATA {kv_sql})
+    """)
+    con.close()
+    _rename_kv(part, {"stac_geoparquet": "stac-geoparquet"})
+    part.replace(out)
+    if cogp:
+        convert_to_cogp(out)
+    return pq.ParquetFile(out).metadata.num_rows
 
 
-def _s3_uri(col: pa.Array) -> pa.Array:
-    """Vectorized equivalent of ``transform.s3_uri`` for historical data.
-
-    New rows are already normalized at ingestion time; this just protects
-    against merging in older artifacts pushed before that fix.
-    """
-    has_scheme = pc.starts_with(col, "s3://")
-    has_slash = pc.starts_with(col, "/")
-    return pc.if_else(
-        has_scheme, col,
-        pc.if_else(has_slash,
-                   pc.binary_join_element_wise(pa.scalar("s3:/"), col, ""),
-                   pc.binary_join_element_wise(pa.scalar("s3://"), col, "")),
-    )
-
-
-def _add_common(t: pa.Table, cols: dict) -> None:
-    """Fields common to any STAC item, when the source columns exist."""
-    if "platformShortName" in t.column_names and "platformSerialIdentifier" in t.column_names:
-        short = pc.utf8_lower(t["platformShortName"])
-        serial = pc.utf8_lower(t["platformSerialIdentifier"])
-        cols["constellation"] = short
-        cols["platform"] = pc.binary_join_element_wise(short, serial, "")
-    if "instrumentShortName" in t.column_names:
-        col = t["instrumentShortName"]
-        cols["instruments"] = _list_wrap(pc.utf8_lower(col), pc.is_valid(col))
-
-
-def _add_sar(t: pa.Table, cols: dict, extensions: set) -> None:
-    if "polarisationChannels" not in t.column_names or "operationalMode" not in t.column_names:
+def _rename_kv(path: Path, renames: dict[str, str]) -> None:
+    """DuckDB's KV_METADATA keys are identifiers (no '-'); fix them up in the footer."""
+    pf = pq.ParquetFile(path)
+    meta = dict(pf.metadata.metadata or {})
+    if not any(k.encode() in meta for k in renames):
         return
-    mode = t["operationalMode"]
-    has_mode = pc.is_valid(mode)
-    cols["sar:instrument_mode"] = mode
-    cols["sar:polarizations"] = pc.split_pattern(t["polarisationChannels"], "&")
-    # Fixed for the whole Sentinel-1 mission (C-band, right-looking antenna).
-    cols["sar:frequency_band"] = pc.if_else(has_mode, pa.scalar("C"), pa.scalar(None, type=pa.string()))
-    cols["sar:center_frequency"] = pc.if_else(has_mode, pa.scalar(5.405), pa.scalar(None, type=pa.float64()))
-    cols["sar:observation_direction"] = pc.if_else(has_mode, pa.scalar("right"), pa.scalar(None, type=pa.string()))
-    if "swathIdentifier" in t.column_names:
-        # swathIdentifier means different things per product type: for GRD
-        # it's just the mode name again ("IW", same as operationalMode); for
-        # real SLC/OCN products it's a space-separated list of actual
-        # sub-swath beam IDs ("IW1 IW2 IW3"), confirmed against a live IW SLC
-        # product. That's CDSE's sar:beam_ids. Harmless single-element list
-        # for GRD, just redundant with sar:instrument_mode there.
-        cols["sar:beam_ids"] = pc.split_pattern(t["swathIdentifier"], " ")
-    extensions.add("sar")
-    # Not mapped, and not guessed at: sar:resolution_azimuth/range and
-    # sar:pixel_spacing_azimuth/range are fixed per (mode, product type)
-    # technical constants -- not present in any OData attribute checked
-    # (fixture or live), and getting them right needs a verified lookup
-    # table from ESA specs we don't have yet. Same for view:azimuth/
-    # view:incidence_angle (per-scene viewing geometry, not in OData at all).
-
-
-def _add_sat(t: pa.Table, cols: dict, extensions: set) -> None:
-    have = False
-    if "orbitDirection" in t.column_names:
-        cols["sat:orbit_state"] = pc.utf8_lower(t["orbitDirection"])
-        have = True
-    if "orbitNumber" in t.column_names:
-        cols["sat:absolute_orbit"] = t["orbitNumber"]
-        have = True
-    if "relativeOrbitNumber" in t.column_names:
-        cols["sat:relative_orbit"] = t["relativeOrbitNumber"]
-        have = True
-    if "cycleNumber" in t.column_names:
-        cols["sat:orbit_cycle"] = t["cycleNumber"]
-        have = True
-    if "platformSerialIdentifier" in t.column_names:
-        cols["sat:platform_international_designator"] = _lookup(
-            pc.utf8_upper(t["platformSerialIdentifier"]), PLATFORM_DESIGNATORS)
-        have = True
-    if have:
-        extensions.add("sat")
-
-
-def _add_product(t: pa.Table, cols: dict, extensions: set) -> None:
-    have = False
-    if "productType" in t.column_names:
-        cols["product:type"] = t["productType"]
-        have = True
-    if "timeliness" in t.column_names:
-        cols["product:timeliness_category"] = t["timeliness"]
-        cols["product:timeliness"] = _lookup(t["timeliness"], TIMELINESS_DURATION)
-        have = True
-    if have:
-        extensions.add("product")
-
-
-def _add_processing(t: pa.Table, cols: dict, extensions: set) -> None:
-    have = False
-    if "processingLevel" in t.column_names:
-        level = t["processingLevel"]
-        cols["processing:level"] = _lookup(level, PROCESSING_LEVEL, default=level)
-        have = True
-    if "processingDate" in t.column_names:
-        cols["processing:datetime"] = t["processingDate"]
-        have = True
-    if "processingCenter" in t.column_names:
-        cols["processing:facility"] = t["processingCenter"]
-        have = True
-    if "processorVersion" in t.column_names:
-        cols["processing:version"] = t["processorVersion"]
-        have = True
-    if "processorName" in t.column_names and "processorVersion" in t.column_names:
-        # A map, not a struct: processorName (the map key) varies per row, and
-        # Arrow structs need a fixed field set. Keys vary per row, so this is
-        # the one field built with a per-row Python loop -- see module docstring.
-        names = t["processorName"].to_pylist()
-        versions = t["processorVersion"].to_pylist()
-        cols["processing:software"] = pa.array(
-            [[(n, v)] if isinstance(n, str) else None for n, v in zip(names, versions)],
-            type=pa.map_(pa.string(), pa.string()),
-        )
-        have = True
-    if have:
-        extensions.add("processing")
-
-
-def _add_eopf(t: pa.Table, cols: dict, extensions: set) -> None:
-    have = False
-    if "datatakeID" in t.column_names:
-        cols["eopf:datatake_id"] = pc.cast(t["datatakeID"], pa.string())
-        have = True
-    if "instrumentConfigurationID" in t.column_names:
-        cols["eopf:instrument_configuration_id"] = pc.cast(t["instrumentConfigurationID"], pa.string())
-        have = True
-    if have:
-        extensions.add("eopf")
-    # Not mapped: sat:anx_datetime (ascending node crossing time) would need
-    # deriving from content_start - startTimeFromAscendingNode, and that
-    # attribute's units (ms, inferred from one fixture where the start/end
-    # difference matched the acquisition duration exactly) couldn't be
-    # re-confirmed against a second live sample -- neither real product
-    # checked happened to include it. Left out rather than shipped on one
-    # unconfirmed data point.
-
-
-def _assets(t: pa.Table) -> pa.Array:
-    """A single ``data`` asset per item, pointing at its S3 directory.
-
-    cdsemeta only has the product-level S3 directory (not the individual
-    band/measurement files inside it), so that directory is the whole asset.
-    """
-    href = _s3_uri(t["s3_path"])
-    has_href = pc.is_valid(href)
-    n = t.num_rows
-    data = pa.StructArray.from_arrays(
-        [
-            _combine(href),
-            _combine(t["name"]),
-            pa.nulls(n, type=pa.string()),
-            _combine(pc.if_else(has_href, pa.scalar("application/x-directory"), pa.scalar(None, type=pa.string()))),
-            _list_wrap(pa.array(["data"] * n), has_href),
-        ],
-        fields=list(ASSET_STRUCT),
-    )
-    return pa.StructArray.from_arrays([data], fields=[pa.field("data", ASSET_STRUCT)])
-
-
-def build_stac_table(table: pa.Table, mission: str) -> pa.Table:
-    """Turn a merged cdsemeta GeoParquet table into a STAC GeoParquet table.
-
-    Rows with ``odata_found = False`` (products the CSV lists but OData never
-    returned, ~1-4% of the catalogue) are dropped: they carry almost no
-    STAC-mappable properties, just id/geometry/dates/checksum from the CSV.
-    The plain merged/registry data is unaffected -- this filter is local to
-    the STAC output.
-    """
-    table = table.filter(table["odata_found"])
-    n = table.num_rows
-    extensions: set[str] = set()
-    cols: dict = {}
-
-    cols["id"] = pc.replace_substring_regex(table["name"], r"\.SAFE$", "")
-    cols["collection"] = pa.array([mission] * n, type=pa.string())
-    cols["datetime"] = table["content_start"]
-    cols["start_datetime"] = table["content_start"]
-    cols["end_datetime"] = table["content_end"]
-
-    _add_common(table, cols)
-    _add_sar(table, cols, extensions)
-    _add_sat(table, cols, extensions)
-    _add_product(table, cols, extensions)
-    _add_processing(table, cols, extensions)
-    _add_eopf(table, cols, extensions)
-
-    out = pa.table(cols)
-    out = out.append_column("geometry", table.column("geometry"))
-    out = out.append_column("bbox", table.column("bbox"))
-    out = out.append_column("links", pa.array([[]] * n, type=pa.list_(LINK_STRUCT)))
-    out = out.append_column("assets", _assets(table))
-    ext_list = sorted(STAC_EXTENSION_SCHEMAS[e] for e in extensions)
-    out = out.append_column("stac_extensions", pa.array([ext_list] * n, type=pa.list_(pa.string())))
-    return out
-
-
-def collection_json(mission: str) -> dict:
-    """A minimal STAC Collection object, for the parquet-level metadata."""
-    return {
-        "type": "Collection",
-        "stac_version": STAC_VERSION,
-        "id": mission,
-        "description": f"cdsemeta {mission} catalogue mirror",
-        "license": "proprietary",
-        "extent": {
-            "spatial": {"bbox": [[-180.0, -90.0, 180.0, 90.0]]},
-            "temporal": {"interval": [[None, None]]},
-        },
-        "links": [],
-    }
-
-
-def write(table: pa.Table, geo_meta: bytes, mission: str, path: Path) -> Path:
-    meta = dict(table.schema.metadata or {})
-    meta[b"geo"] = geo_meta
-    meta[b"stac-geoparquet"] = json.dumps({
-        "version": STAC_GEOPARQUET_VERSION,
-        "collections": {mission: collection_json(mission)},
-    }).encode()
-    table = table.replace_schema_metadata(meta)
-    tmp = path.with_suffix(path.suffix + ".part")
-    pq.write_table(table, tmp, compression="zstd", compression_level=9, row_group_size=100_000,
-                   write_statistics=True)
+    table = pf.read()
+    for old, new in renames.items():
+        if old.encode() in meta:
+            meta[new.encode()] = meta.pop(old.encode())
+    tmp = path.with_suffix(path.suffix + ".kv")
+    pq.write_table(table.replace_schema_metadata(meta), tmp, compression="zstd", row_group_size=100_000)
     tmp.replace(path)
-    return path
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("input", type=Path, help="merged GeoParquet, e.g. sentinel-1_grd.parquet")
-    ap.add_argument("--collection", default=None,
-                    help="collection name, e.g. grd (default: guessed from the input filename)")
-    ap.add_argument("--out", type=Path, default=None, help="default: <mission>_<collection>_stac.parquet")
-    ap.add_argument("--push", action="store_true", help="push the result as tag stac-<collection>-YYYYMMDD")
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("source", nargs="+",
+                    help="merged files or URLs, named <mission>-<bucket>.parquet/<YYYY-MM>.parquet")
+    ap.add_argument("--out-dir", type=Path, default=Path("stac"), help="written to <out-dir>/<same key>")
+    ap.add_argument("--upload-r2", action="store_true", help="upload each result under the same key")
+    ap.add_argument("--delete-after-upload", action="store_true")
+    ap.add_argument("--memory-limit", default=None)
     args = ap.parse_args(argv)
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper(),
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-
-    cfg = Config.from_env()
-    collection = args.collection or args.input.stem.removeprefix(f"{cfg.mission}_")
-    args.out = args.out or Path(f"{cfg.mission}_{collection}_stac.parquet")
-
-    pf = pq.ParquetFile(args.input)
-    # ParquetFile.schema_arrow.metadata (and pq.read_schema()) can fail to
-    # surface custom KV metadata on files rewritten by cogp (a different
-    # writer, parquet-rs, not pyarrow's own) -- ParquetFile.metadata.metadata
-    # reads the raw FileMetaData KV pairs directly and does see it.
-    geo_meta = (pf.metadata.metadata or {}).get(b"geo")
-    if geo_meta is None:
-        log.error("%s is missing GeoParquet metadata", args.input)
-        return 1
-
-    # Batched read+write: pq.read_table() would materialize the whole input
-    # (multiple GB compressed, several times that decompressed -- enough to
-    # get OOM-killed) in memory at once. Each row's STAC properties only
-    # depend on that row, so there's no need to ever hold more than one
-    # batch, matching the row-group granularity the merge step already wrote.
-    rows = 0
-    writer: pq.ParquetWriter | None = None
-    tmp = args.out.with_suffix(args.out.suffix + ".part")
-    try:
-        for batch in pf.iter_batches(batch_size=100_000):
-            stac_table = build_stac_table(pa.Table.from_batches([batch]), cfg.mission)
-            if writer is None:
-                meta = {b"geo": geo_meta, b"stac-geoparquet": json.dumps({
-                    "version": STAC_GEOPARQUET_VERSION,
-                    "collections": {cfg.mission: collection_json(cfg.mission)},
-                }).encode()}
-                writer = pq.ParquetWriter(tmp, stac_table.schema.with_metadata(meta),
-                                           compression="zstd", compression_level=9)
-            writer.write_table(stac_table, row_group_size=100_000)
-            rows += stac_table.num_rows
-    finally:
-        if writer is not None:
-            writer.close()
-    tmp.replace(args.out)
-    log.info("wrote %s: %d rows", args.out, rows)
-    log.info("converting %s to COGP layout", args.out)
-    convert_to_cogp(args.out)
-
-    if args.push:
-        registry = Registry(cfg.oci_repo)
-        tag = f"stac-{collection}-{date.today():%Y%m%d}"
-        registry.push(tag, args.out, {
-            "org.opencontainers.image.title": args.out.name,
-            "cdsemeta.rows": str(rows),
-            "cdsemeta.collection": collection,
-            "cdsemeta.mission": cfg.mission,
-            "cdsemeta.version": __version__,
-        })
-        log.info("pushed %s:%s", cfg.oci_repo, tag)
-    return 0
+    failed = 0
+    for src in args.source:
+        parts = src.rstrip("/").split("/")
+        key = "/".join(parts[-2:])
+        bucket_id = parts[-2].removesuffix(".parquet")
+        out = args.out_dir / key
+        try:
+            rows = convert(src, out, bucket_id, memory_limit=args.memory_limit, tmp_dir=args.out_dir)
+        except Exception as e:  # keep going; the month stays as it was
+            log.error("%s: %s", key, e)
+            failed += 1
+            continue
+        log.info("%s: %d rows", key, rows)
+        if args.upload_r2:
+            r2.upload(out, key)
+            if args.delete_after_upload:
+                out.unlink()
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

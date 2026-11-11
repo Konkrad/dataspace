@@ -19,8 +19,7 @@ from pathlib import Path
 import duckdb
 import pyarrow.parquet as pq
 
-from . import __version__, r2
-from .cogp import convert_to_cogp
+from . import __version__, r2, stac
 from .config import Config
 from .naming import find_day_file, latest_per_day, parse_tag, relpath_for_tag
 from .registry import Registry
@@ -230,14 +229,18 @@ def main(argv: list[str] | None = None) -> int:
         try:
             for collection, out in todo.items():
                 log.info("merging %s %s (%d files)", collection, label, len(files))
-                rows = merge(files, out, args.cache, args.memory_limit, collection=collection, exclude=cfg.exclude)
+                raw = out.with_suffix(".raw.parquet")
+                rows = merge(files, raw, args.cache, args.memory_limit, collection=collection, exclude=cfg.exclude)
                 if rows == 0:
+                    raw.unlink(missing_ok=True)
                     out.unlink(missing_ok=True)
                     log.info("%s %s: no rows, skipping", collection, label)
                     continue
-                log.info("wrote %s: %d rows", out, rows)
-                log.info("converting %s to COGP layout", out)
-                convert_to_cogp(out)
+                # STAC GeoParquet with CDSE's property names, then COGP layout.
+                log.info("writing STAC %s (%d rows)", out, rows)
+                stac.convert(raw, out, f"{cfg.mission}-{collection}", memory_limit=args.memory_limit,
+                             tmp_dir=args.cache)
+                raw.unlink()
                 key = f"{cfg.mission}-{collection}.parquet/{label}.parquet"
                 if args.push:
                     registry.push(f"{collection}-{label}", out, {

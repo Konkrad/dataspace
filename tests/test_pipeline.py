@@ -146,35 +146,61 @@ def test_merge(tmp_path):
 
 def test_build_stac_table(tmp_path):
     from cdsemeta.merge import merge
-    from cdsemeta.stac import build_stac_table, write
+    from cdsemeta.stac import convert
 
     df = csvfile.read_csv(CSV)
     table, geoms, _ = build_table(df, products())
     a = geoparquet.write(table, geoms, tmp_path / "a.parquet")
-    out = tmp_path / "all.parquet"
-    merge([a], out, tmp_path)
-    src = pq.read_table(out)
+    merged = tmp_path / "all.parquet"
+    merge([a], merged, tmp_path)
+    src = pq.read_table(merged)
 
-    odata_found_rows = src.column("odata_found").to_pylist().count(True)
-    stac_table = build_stac_table(src, "sentinel-1")
-    assert stac_table.num_rows == odata_found_rows < src.num_rows
-    ext = stac_table.column("stac_extensions")[0].as_py()
-    assert "https://stac-extensions.github.io/sar/v1.3.0/schema.json" in ext
-
-    write(stac_table, src.schema.metadata[b"geo"], "sentinel-1", tmp_path / "stac.parquet")
-    gdf = gpd.read_parquet(tmp_path / "stac.parquet")
+    out = tmp_path / "stac.parquet"
+    assert convert(merged, out, "sentinel-1-grd", cogp=False) == src.num_rows  # nothing dropped
+    meta = pq.ParquetFile(out).metadata.metadata
+    assert b"geo" in meta and json.loads(meta[b"stac-geoparquet"])["version"] == "1.1.0"
+    gdf = gpd.read_parquet(out)
     assert not gdf["id"].str.endswith(".SAFE").any()
-    # odata_found=False rows (e.g. CARD-COH12, which has no OData attributes)
-    # are dropped from the STAC output entirely.
-    assert not gdf["id"].str.contains("CARD-COH12").any()
+    assert set(gdf["type"]) == {"Feature"}
+    assert "https://stac-extensions.github.io/sar/v1.3.0/schema.json" in gdf["stac_extensions"].iloc[0]
 
-    found = gdf[gdf["product:type"].notna()].iloc[0]
+    found = gdf[gdf["cdse:odata_found"]].iloc[0]
     assert found["platform"] == "sentinel-1a"
+    assert found["constellation"] == "sentinel-1"
+    assert list(found["instruments"]) == ["sar"]
     assert list(found["sar:polarizations"]) == ["HH", "HV"]
     assert found["sat:platform_international_designator"] == "2014-016A"
     assert found["product:timeliness_category"] in ("NRT-3h", "Fast-24h")
     assert found["processing:level"] == "L1"
-    assert found["assets"]["data"]["href"].startswith("s3://eodata/")
+    assert found["sar:center_frequency"] == 5.405
+    assert found["assets"]["product"]["href"].startswith("s3://eodata/")
+    assert found["links"][0]["href"].startswith("https://catalogue.dataspace.copernicus.eu/odata/v1/Products(")
+    # Rows OData didn't return stay, with what the CSV has.
+    assert (~gdf["cdse:odata_found"]).any()
+
+
+def test_stac_collection_ids():
+    """CDSE's collection id from product type and timeliness, else our bucket."""
+    import duckdb
+    from cdsemeta.stac import select_sql
+
+    def coll(mission, bucket, **cols):
+        names = ", ".join(f"{v!r} AS \"{k}\"" if v is not None else f"NULL::VARCHAR AS \"{k}\"" for k, v in cols.items())
+        select, _ = select_sql(set(cols), mission, bucket)
+        sql = select.split(" AS collection")[0].rsplit(",\n  ", 1)[-1]
+        return duckdb.sql(f"SELECT {sql} FROM (SELECT {names})").fetchone()[0]
+
+    assert coll("sentinel-1", "sentinel-1-grd", productType="IW_GRDH_1S-COG") == "sentinel-1-grd"
+    assert coll("sentinel-1", "sentinel-1-slc", productType="WV_SLC__1S") == "sentinel-1-slc-wv"
+    assert coll("sentinel-1", "sentinel-1-raw", productType="IW_RAW__0S") == "sentinel-1-raw"
+    assert coll("sentinel-2", "sentinel-2-l2a", productType="S2MSI2A") == "sentinel-2-l2a"
+    assert coll("sentinel-3", "sentinel-3-olci", productType="OL_2_LFR___", timeliness="NT") == "sentinel-3-olci-2-lfr-ntc"
+    assert coll("sentinel-3", "sentinel-3-sral", productType="SR_2_LAN_HY", timeliness="NR") == "sentinel-3-sr-2-lan-hy-nrt"
+    assert coll("sentinel-3", "sentinel-3-synergy", productType="SY_2_V10___", timeliness="ST") == "sentinel-3-syn-2-v10-stc"
+    assert coll("sentinel-3", "sentinel-3-sral", productType="SR___POE_AX", timeliness="NT") == "sentinel-3-sral"
+    assert coll("sentinel-5p", "sentinel-5p-l2", productType="L2__O3__PR", processingMode="OFFL") == "sentinel-5p-l2-o3-pr-offl"
+    assert coll("sentinel-5p", "sentinel-5p-l1b", productType="L1B_RA_BD3", processingMode="NRTI") == "sentinel-5p-l1-ra-bd3-nrti"
+    assert coll("sentinel-5p", "sentinel-5p-l2", productType="L2__BRO___", processingMode="OFFL") == "sentinel-5p-l2"
 
 
 def test_push_links_package_to_repo(tmp_path, monkeypatch):

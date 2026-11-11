@@ -17,7 +17,7 @@ const SOURCE = 'footprints';
 const LAYER = 'products';
 const LAYERS = ['footprints-fill', 'footprints-line'];
 // Shown on click. Every mission has these; other columns differ per mission.
-const PROPERTIES = { name: 'name', content_start: 'content_start', productType: 'productType' };
+const PROPERTIES = { id: 'id', datetime: 'datetime', type: 'product:type', collection: 'collection' };
 
 const $ = (id) => document.getElementById(id);
 const { base, datasets } = JSON.parse($('datasets').textContent);
@@ -107,7 +107,7 @@ const escape = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCode
 map.on('click', 'footprints-fill', (e) => {
   const rows = e.features.slice(0, 8).map((f) => {
     const p = f.properties;
-    return `<li><strong>${escape(p.name)}</strong><br>${escape(p.content_start)} · ${escape(p.productType)}</li>`;
+    return `<li><strong>${escape(p.id)}</strong><br>${escape(p.datetime)} · ${escape(p.type)} · ${escape(p.collection)}</li>`;
   });
   const more = e.features.length > 8 ? `<li>… ${e.features.length - 8} more</li>` : '';
   new maplibregl.Popup({ maxWidth: '360px' })

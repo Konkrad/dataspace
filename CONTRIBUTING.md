@@ -287,33 +287,31 @@ MISSION=sentinel-1 cdsemeta-update sync --ids ids       # then sync reads and up
 
 ## STAC GeoParquet
 
+The published monthly files are STAC GeoParquet with CDSE's own STAC item
+ids, collection ids and property names (`cdsemeta/stac.py`). The merge writes
+the raw OData columns first, then maps them in one DuckDB `SELECT` and runs
+`cogp convert` on the result (COGP's `geo.lod` describes row groups, so it
+has to be the last write).
+
+- `id` is the product name without its extension; `collection` is derived
+  from `productType` plus `timeliness` (Sentinel-3: `NR`/`NT`/`ST` →
+  `nrt`/`ntc`/`stc`) or `processingMode` (Sentinel-5P), and checked against
+  `CDSE_COLLECTIONS` (CDSE's Sentinel collections); anything else keeps the
+  file's own id, e.g. `sentinel-1-raw`.
+- Value conventions follow CDSE: lower-case `sat:orbit_state`, `L1`/`L2`
+  levels, `sar:beam_ids` like `iw1`, Sentinel-1 versions `03.71`, Sentinel-5P
+  `02.09.01`, Sentinel-2 cloud cover rounded to 2 decimals, `expires`
+  2262-01-01 for "never".
+- Checked by converting products and diffing them against the CDSE STAC items
+  of the same ids: ids and collections all match; what differs is listed in
+  the README's [Columns](README.md#columns).
+
+To convert files that are already on R2 (the URLs work as sources):
+
 ```sh
-cdsemeta-stac out/sentinel-1_grd/2024-05.parquet --collection grd \
-    --out out/sentinel-1_grd_stac/2024-05.parquet
+cdsemeta-stac https://dataspace.konrad.online/sentinel-1-grd.parquet/2024-05.parquet \
+    --out-dir stac --upload-r2 --delete-after-upload
 ```
-
-Not yet adapted to the monthly files: it handles one file at a time, always
-needs `--collection` (the file name no longer says it), has no R2 upload, and
-`--push` writes a tag with today's date, so two months pushed on the same
-day would overwrite each other. Every row's STAC `collection` is the mission
-(`sentinel-1`), not `grd`.
-
-Maps cdsemeta's raw OData attribute columns (`orbitNumber`, `orbitDirection`,
-`polarisationChannels`, `productType`, ...) into the STAC properties CDSE's
-own STAC API uses (https://stac.dataspace.copernicus.eu/), producing a
-[STAC GeoParquet](https://github.com/radiantearth/stac-geoparquet-spec) file:
-the `sar`/`sat`/`product`/`processing`/`eopf` STAC extensions, `id`/
-`datetime`/`collection`/`links`/`assets`. Each `assets.data.href` is the
-product's `s3://eodata/...` directory (cdsemeta only has the product-level S3
-path, not individual measurement files). Only mapped when the mission's
-attribute columns are actually present, so it degrades gracefully for
-missions other than Sentinel-1 — the mapping itself has only been verified
-against Sentinel-1.
-
-Like the merged file, this is run through `cogp convert` (rerun on this file
-specifically, since adding columns after a COGP conversion would leave its
-`geo.lod` metadata pointing at stale row groups) and pushed as its own tag,
-`stac-YYYYMMDD`.
 
 ## Public index
 
