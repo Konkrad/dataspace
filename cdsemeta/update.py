@@ -340,9 +340,12 @@ def ids_from_artifacts(cfg: Config, artifacts_dir: Path, ids_dir: Path, years: l
 def sync(cfg: Config, work: Path, push: bool = True, years: list[str] | None = None,
          recent_days: int = 0, zip_source: str | None = None, artifacts_dir: Path | None = None,
          out_dir: Path | None = None, use_odata: bool = True, ids_dir: Path | None = None,
-         dry_run: bool = False) -> int:
+         dry_run: bool = False, changed_days: Path | None = None) -> int:
     """See the module docstring. Returns 1 if any platform-year had failures
-    (its ID file is then not saved, so a rerun looks at the same days)."""
+    (its ID file is then not saved, so a rerun looks at the same days).
+
+    With ``changed_days``, every day with a change is appended to that file
+    (one YYYYMMDD per line), so the merge only rebuilds those months."""
     session = make_session(pool_size=max(8, cfg.odata_workers * 2))
     catalogue = CatalogueZip(zip_source, session) if zip_source else \
         CatalogueZip.for_listing(cfg.csv_list_url, session, cfg.http_timeout)
@@ -376,6 +379,10 @@ def sync(cfg: Config, work: Path, push: bool = True, years: list[str] | None = N
                          len(keys), len(todo), counts.added.sum(), counts.removed.sum(), counts.modified.sum())
                 if dry_run:
                     continue
+                if changed_days is not None and len(counts):
+                    changed_days.parent.mkdir(parents=True, exist_ok=True)
+                    with changed_days.open("a") as f:
+                        f.writelines(f"{d}\n" for d in counts["day"])
                 stats = apply_days(todo, platform, artifacts, odata, cfg, registry if push else None, out_dir,
                                    cfg.odata_workers) if todo else Counter()
                 log.info("%s %s: %s", platform, year, dict(stats))
@@ -437,6 +444,8 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--no-push", action="store_true")
     s.add_argument("--dry-run", action="store_true",
                    help="only log how many days would be checked, per platform and year; change nothing")
+    s.add_argument("--changed-days", type=Path, default=None,
+                   help="append the days with changes to this file (for cdsemeta-merge --changed-days)")
     s.add_argument("--no-odata", action="store_true",
                    help="never call OData: rows that would need it are built from the CSV (odata_found=false)")
 
@@ -486,7 +495,7 @@ def main(argv: list[str] | None = None) -> int:
         log.info("%d artifacts in %s", len(files), args.cache)
         return 0
     return sync(cfg, args.work, not args.no_push, args.year, args.recent_days, args.zip, args.artifacts,
-                args.out, not args.no_odata, args.ids, args.dry_run)
+                args.out, not args.no_odata, args.ids, args.dry_run, args.changed_days)
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
@@ -187,6 +188,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--delete-after-upload", action="store_true",
                     help="delete each local file immediately after uploading to R2 (keeps disk usage flat)")
     ap.add_argument("--memory-limit", default=None, help="DuckDB memory limit, e.g. 4GB")
+    ap.add_argument("--changed-days", type=Path, default=None, metavar="FILE",
+                    help="only merge the months of these days (cdsemeta-update sync --changed-days) "
+                         "plus the current and previous month; a missing file means only those two")
     args = ap.parse_args(argv)
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper(),
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -207,6 +211,13 @@ def main(argv: list[str] | None = None) -> int:
     months = [m for m in sorted(by_month)
               if (not args.year or m[:4] == str(args.year)) and (not args.month or m[4:] == f"{args.month:02d}")
               and (not start or m >= start)]
+    if args.changed_days is not None:
+        first = date.today().replace(day=1)
+        wanted = {f"{first:%Y%m}", f"{first - timedelta(days=1):%Y%m}"}
+        if args.changed_days.exists():
+            wanted |= {re.sub(r"\D", "", line)[:6] for line in args.changed_days.read_text().split() if line.strip()}
+        months = [m for m in months if m in wanted]
+        log.info("--changed-days: %d months to merge: %s", len(months), ", ".join(months))
     collections = (args.collection,) if args.collection else COLLECTIONS
     # The daily sync rewrites the last 31 days, which can reach into the previous month.
     first_of_month = date.today().replace(day=1)
