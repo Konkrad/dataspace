@@ -190,7 +190,7 @@ def select_sql(columns: set[str], mission: str, bucket_id: str) -> tuple[str, li
             f"WHEN {s3} IS NOT NULL THEN 's3://' || {s3} END")
     beam_ids = (f"CASE WHEN {pt} LIKE '%GRD%' OR {pt} LIKE '%RAW%' OR {c('swathIdentifier')} IS NULL THEN NULL "
                 f"WHEN NOT regexp_matches({c('swathIdentifier')}, '\\d') THEN NULL "
-                f"ELSE list_transform(string_split_regex(trim({c('swathIdentifier')}), '[ ,]+'), x -> lower(x)) END")
+                f"ELSE list_transform(string_split_regex(trim({c('swathIdentifier')}), '[ ,]+'), lambda x: lower(x)) END")
     facility = f"coalesce({c('processingCenter')}, {c('origin')})" if mission == "sentinel-2" else c("processingCenter")
     is_s1 = mission == "sentinel-1"
     is_s2 = mission == "sentinel-2"
