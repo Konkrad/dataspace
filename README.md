@@ -12,6 +12,11 @@ public, no account needed.
 **https://dataspace.konrad.online**: a map of every collection and month,
 the list of files, and how to use them.
 
+> **Find this useful?** This is an independent project, not a CDSE service.
+> If you'd like the catalogue as GeoParquet to be provided officially, please
+> [write to CDSE support](https://documentation.dataspace.copernicus.eu/Support.html)
+> and ask them to take over the feature. The more people ask, the likelier it is.
+
 Query it in place with DuckDB, Python, QGIS or anything that reads Parquet
 over HTTP, or download all of it. Only the parts of a file a query needs are
 fetched.
