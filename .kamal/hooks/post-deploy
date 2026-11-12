@@ -3,8 +3,7 @@
 # deploy. Kamal's own built-in prune (docker image prune --filter
 # label=service=cdsemeta-worker) only catches dangling images for this one
 # service -- it doesn't touch old tagged versions kept around, or anything
-# unrelated. Left unchecked this fills the host's disk (a real incident on
-# this 9GB box, shared with another app and other apps), eventually taking
+# unrelated. Left unchecked this fills the host's disk, eventually taking
 # the whole server down, not just this app.
 #
 # Only removes: exited containers, and images not attached to any container

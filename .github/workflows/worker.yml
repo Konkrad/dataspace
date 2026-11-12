@@ -12,8 +12,7 @@ name: Catalogue updates
 #   previous month (--changed-days); a fresh runner has no merged files, so
 #   without it every month of the mission would be rebuilt and re-uploaded.
 #
-# GitHub-hosted runners have normal internet, so no IPv6/SOCKS-proxy
-# workaround as on the old server. Work goes to /mnt (the big disk on the runner).
+# Work goes to /mnt (the big disk on the runner).
 #
 # Pushes to GHCR with the workflow's own GITHUB_TOKEN, no PAT secret. Each
 # package (sentinel-1, sentinel-2, ...) must give this repository the Write
