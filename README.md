@@ -67,6 +67,50 @@ Next to the data:
 | [`files.txt`](https://dataspace.konrad.online/files.txt) | every file's URL, one per line |
 | [`files.tsv`](https://dataspace.konrad.online/files.tsv) | URL, size, ETag and last-modified of every file |
 
+## When to use it
+
+CDSE's [OData](https://documentation.dataspace.copernicus.eu/APIs/OData.html)
+and [STAC](https://stac.dataspace.copernicus.eu/v1/) APIs are built to find
+products and download them. This dataset is built for questions about many
+products at once.
+
+Use this dataset for:
+
+- **Statistics over the archive**: scenes per tile and year, cloud-free
+  revisits, data volume per month, coverage gaps of a satellite. One SQL query
+  instead of thousands of paged API requests.
+- **Large result sets**: no paging limit (CDSE's APIs stop at 10,000 results
+  per query), no rate limit, no account.
+- **Comparisons and joins**: Sentinel-1 and Sentinel-2 over the same place
+  within a day, products whose processing baseline changed, a stack of one
+  relative orbit for InSAR.
+- **Reproducible analyses**: a file only changes when the catalogue does, and
+  its ETag tells you when.
+
+Use CDSE's APIs for:
+
+- **The newest products**: near-real-time products appear there within hours;
+  here after the next daily update (see [Freshness](#freshness)).
+- **Downloading products**: this dataset has their S3 paths, download links
+  and checksums, but the data itself comes from CDSE, with your account.
+- **What is read from inside the products**: per-file assets (`vv`, `vh`,
+  the manifest, ...) and viewing angles (`view:*`) are not in the catalogue
+  (see [What is left out](#what-is-left-out)).
+
+### Online or downloaded?
+
+Queries over HTTP fetch only the columns and row groups they need, not whole
+files:
+
+- **Online** suits questions over a few months: put them in the path
+  (`2024-*.parquet`) so other files aren't opened, and select only the
+  columns you need. Filters on area or cloud cover don't reduce what is
+  fetched: every part of a file covers the whole world, ordered for map
+  display rather than by place or value.
+- **Download** for scans over many months or all years that you run more
+  than once. Fetch only the collections you need, or only the columns (see
+  [Download](#download)), then query locally in seconds.
+
 ## Access
 
 ### DuckDB
@@ -161,6 +205,24 @@ aria2c -x 4 -j 4 --auto-file-renaming=false -i https://dataspace.konrad.online/f
 
 `files.tsv` has each file's ETag and last-modified, to find what changed
 since a previous download.
+
+Or only the columns you need, which is often a small part of a collection.
+DuckDB reads just those columns over HTTP, once, and writes a local file:
+
+```sql
+COPY (
+  SELECT id, datetime, "grid:code", "eo:cloud_cover", bbox
+  FROM read_parquet('https://dataspace.konrad.online/sentinel-2-l2a.parquet/*.parquet')
+) TO 'sentinel-2-l2a-light.parquet';
+
+-- then, locally: cloud-free scenes per tile and year
+SELECT "grid:code", year(datetime) AS year, count(*) AS scenes
+FROM 'sentinel-2-l2a-light.parquet'
+WHERE "eo:cloud_cover" < 10
+GROUP BY ALL ORDER BY ALL;
+```
+
+Redo the `COPY` after the monthly update to pick up changed months.
 
 ## Columns
 

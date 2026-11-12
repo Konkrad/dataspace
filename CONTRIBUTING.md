@@ -372,11 +372,20 @@ custom domain):
   `content-range`, `content-length`, `etag`, `accept-ranges`. The bucket is in
   the EU jurisdiction, so the API and `wrangler` need it named:
   `npx wrangler r2 bucket cors set dataspace --jurisdiction eu --file cors.json`.
-- **Rate limiting:** the rule "dataspace: 1000 req / 10s per IP" (Security →
+- **Rate limiting:** the rule "dataspace: 5000 req / 10s per IP" (Security →
   WAF → Rate limiting rules; the free plan allows one rule and only a 10 s
-  period) blocks an IP for 10 s above 1,000 requests. Parquet readers make
-  many small range requests (a few per file and row group), and `rclone` one
-  per file: the earlier 50 per 10 s blocked ordinary DuckDB queries with 429.
+  period) blocks an IP for 10 s above 5,000 requests. Parquet readers make
+  many small range requests: DuckDB about 60 per monthly file, in parallel,
+  and it doesn't retry a 429. 1,000 per 10 s blocked queries over two years
+  or more; at 5,000 a query over every Sentinel-2 L2A month works. The limit
+  is against abuse, not R2 costs: requests are served from Cloudflare's cache
+  (below), and R2 is only read on a miss.
+- **Caching:** "dataspace: cache everything" keeps files at the edge for a
+  day, and Smart Tiered Cache (Caching → Tiered Cache) sends misses through
+  a central tier, so R2 sees about one read per file and day. The free plan
+  only caches files up to 512 MB; a larger file would be read from R2 on
+  every request, so split a collection's months before they reach that
+  (Sentinel-2 L1C/L2A are at about 470 MB).
 - **Read-only:** the custom rule "dataspace: read-only (GET/HEAD/OPTIONS)"
   blocks every other method. `OPTIONS` is the browsers' CORS pre-check.
 
