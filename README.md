@@ -112,9 +112,12 @@ files:
   columns you need. Filters on area or cloud cover don't reduce what is
   fetched: every part of a file covers the whole world, ordered for map
   display rather than by place or value.
-- **Download** for scans over many months or all years that you run more
-  than once. Fetch only the collections you need, or only the columns (see
-  [Download](#download)), then query locally in seconds.
+- **Download** when you scan many months or all years more than once,
+  filter on several properties (cloud cover, orbit, product type, ...), or
+  aggregate over large areas or long periods: those queries read most of the
+  data, which online means fetching it again on every run. Fetch only the
+  collections you need, or only the columns (see [Download](#download)), then
+  query locally in seconds.
 
 ## Access
 
