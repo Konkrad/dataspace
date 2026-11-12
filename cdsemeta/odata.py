@@ -65,9 +65,18 @@ class ODataClient:
         self.timeout = timeout
         self.limiter = RateLimiter(rps)
 
+    # Waits after a 429 that the session's own retries didn't clear (they follow
+    # CDSE's Retry-After, which can be short): 30 s, 60 s, ... about 30 min in all.
+    RATE_LIMIT_WAITS = (30, 60, 120, 240, 480, 900)
+
     def _get(self, params: list[tuple[str, str]] | None, url: str | None = None) -> dict:
-        self.limiter.wait()
-        r = self.session.get(url or self.url, params=params, timeout=self.timeout)
+        for wait in (*self.RATE_LIMIT_WAITS, None):
+            self.limiter.wait()
+            r = self.session.get(url or self.url, params=params, timeout=self.timeout)
+            if r.status_code != 429 or wait is None:
+                break
+            log.warning("OData rate limit (429), waiting %d s", wait)
+            time.sleep(wait)
         if r.status_code == 403:
             try:
                 body = r.json()
