@@ -93,7 +93,9 @@ class ODataClient:
         data = self._get(params)
         products = list(data.get("value", []))
         next_link = data.get("@odata.nextLink")
-        while next_link:
+        # CDSE links a next page whenever a page is full, even when every id
+        # has come back: following it would cost one empty request per batch.
+        while next_link and len(products) < len(ids):
             data = self._get(None, next_link)
             products += data.get("value", [])
             next_link = data.get("@odata.nextLink")
