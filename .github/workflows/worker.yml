@@ -92,7 +92,9 @@ jobs:
             --changed-days /work/sync/changed-days.txt
 
       - name: Merge and upload to R2
-        if: env.R2_ACCOUNT_ID != ''
+        # Also after a failed sync: the days it did finish are on GHCR, and their
+        # months are only listed in changed-days.txt on this machine.
+        if: ${{ !cancelled() && env.R2_ACCOUNT_ID != '' }}
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}

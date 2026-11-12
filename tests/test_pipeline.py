@@ -731,3 +731,12 @@ def test_merge_and_ids_exclude(tmp_path):
     assert rows == len(df) - len(card)
     t = ids.table_from_artifacts([a], (r"_CARD[-_][A-Z0-9]+$",))
     assert not set(card) & set(t["Name"].to_pylist()) and t.num_rows == rows
+
+
+def test_lookup_groups():
+    from cdsemeta.update import lookup_groups
+    day = lambda n: ((None,) * 5 + (set(range(n)),), None)  # noqa: E731 - (prepared, work) with n lookups
+    sizes = lambda groups: [[len(pr[5]) for pr, _ in g] for g in groups]  # noqa: E731
+    assert sizes(lookup_groups([day(3), day(4), day(2), day(9), day(1)], 7)) == [[3, 4], [2], [9], [1]]
+    assert sizes(lookup_groups([day(0), day(0)], 7)) == [[0, 0]]
+    assert lookup_groups([], 7) == []

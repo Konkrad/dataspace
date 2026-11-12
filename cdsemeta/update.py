@@ -60,6 +60,23 @@ from .transform import FIXED_SCHEMA, build_table, parse_ts
 log = logging.getLogger("cdsemeta.update")
 
 CHUNK = 200  # days per OData round: their lookups share 100-ID batches
+LOOKUP_GROUP = 20_000  # OData records held in memory at once (see apply_days)
+
+
+def lookup_groups(ready: list, limit: int) -> list[list]:
+    """Split prepared days into consecutive groups of about ``limit`` lookups
+    (a day is never split; one larger than ``limit`` is a group of its own)."""
+    groups, group, n = [], [], 0
+    for item in ready:
+        size = len(item[0][5])
+        if group and n + size > limit:
+            groups.append(group)
+            group, n = [], 0
+        group.append(item)
+        n += size
+    if group:
+        groups.append(group)
+    return groups
 EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
@@ -243,11 +260,16 @@ def apply_days(days: list[tuple[str, Path]], platform: str, artifacts: Artifacts
                 prepared = list(pool.map(prepare, chunk, works))
                 ready = [(pr, w) for pr, w in zip(prepared, works) if not isinstance(pr, str)]
                 stats.update(pr for pr in prepared if isinstance(pr, str))
-                lookup = sorted(set().union(*(pr[5] for pr, _ in ready))) if ready else []
-                products = odata.fetch(lookup) if (lookup and odata is not None) else {}
-                if lookup:
-                    log.info("OData: %d of %d looked-up products found", len(products), len(lookup))
-                stats.update(pool.map(lambda rw: finish(rw[0], products, rw[1]), ready))
+                # Fetch and finish in groups of about LOOKUP_GROUP products: a year
+                # CDSE touched wholesale (928k S3A 2024 products) would otherwise
+                # hold every OData record of 200 days in memory at once.
+                for group in lookup_groups(ready, LOOKUP_GROUP):
+                    lookup = sorted(set().union(*(pr[5] for pr, _ in group)))
+                    products = odata.fetch(lookup) if (lookup and odata is not None) else {}
+                    if lookup:
+                        log.info("OData: %d of %d looked-up products found", len(products), len(lookup))
+                    stats.update(pool.map(lambda rw, p=products: finish(rw[0], p, rw[1]), group))
+                    del products
             finally:
                 for w in works:
                     shutil.rmtree(w, ignore_errors=True)
