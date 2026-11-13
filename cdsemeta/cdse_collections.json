@@ -925,6 +925,163 @@
   },
   "sci:citation": "Copernicus Sentinel data [Year]"
  },
+ "sentinel-3-olci-1-efr-nrt": {
+  "title": "Sentinel-3 OLCI Earth Observation Full Resolution (NRT)",
+  "description": "The Ocean and Land Color Instrument (OLCI) Earth Observation Full Resolution dataset contains top of atmosphere radiances at 21 spectral bands with center wavelengths ranging between 0.4µm and 1.02µm at spatial resolution of 300m with worldwide coverage every ~2 days.",
+  "keywords": [
+   "300m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Earth",
+   "Global",
+   "OLCI",
+   "OL_1_EFR____",
+   "PT3H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "bright": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_1_EFR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "03.24",
+    "03.25",
+    "03.27",
+    "03.29",
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NR"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
  "sentinel-3-olci-1-efr-ntc": {
   "title": "Sentinel-3 OLCI Earth Observation Full Resolution (NTC)",
   "description": "The Ocean and Land Color Instrument (OLCI) Earth Observation Full Resolution dataset contains top of atmosphere radiances at 21 spectral bands with center wavelengths ranging between 0.4µm and 1.02µm at spatial resolution of 300m with worldwide coverage every ~2 days.",
@@ -1074,6 +1231,163 @@
    ],
    "product:timeliness_category": [
     "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-olci-1-err-nrt": {
+  "title": "Sentinel-3 OLCI Earth Observation Reduced Resolution (NRT)",
+  "description": "The Ocean and Land Color Instrument (OLCI) Earth Observation Reduced Resolution dataset contains top of atmosphere radiances at 21 spectral bands with center wavelengths ranging between 0.4µm and 1.02µm at spatial resolution of 300m with worldwide coverage every ~2 days.",
+  "keywords": [
+   "1200m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Earth",
+   "Global",
+   "OLCI",
+   "OL_1_ERR____",
+   "PT3H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1200
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "bright": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_1_ERR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "03.24",
+    "03.25",
+    "03.27",
+    "03.29",
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NR"
    ],
    "sat:platform_international_designator": [
     "2016-011A",
@@ -1239,6 +1553,162 @@
   },
   "sci:citation": "Copernicus Sentinel data [Year]"
  },
+ "sentinel-3-olci-2-lfr-nrt": {
+  "title": "Sentinel-3 OLCI Land Full Resolution (NRT)",
+  "description": "This collection provides Sentinel-3 OLCI Level-2 Land Full Resolution products containing data on global vegetation, chlorophyll, and water vapor.",
+  "keywords": [
+   "300m",
+   "Biomass",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "Land",
+   "OLCI",
+   "OL_2_LFR____",
+   "PT3H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_2_LFR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.29",
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.41",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NR"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
  "sentinel-3-olci-2-lfr-ntc": {
   "title": "Sentinel-3 OLCI Land Full Resolution (NTC)",
   "description": "This collection provides Sentinel-3 OLCI Level-2 Land Full Resolution products containing data on global vegetation, chlorophyll, and water vapor.",
@@ -1387,6 +1857,162 @@
    ],
    "product:timeliness_category": [
     "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-olci-2-lrr-nrt": {
+  "title": "Sentinel-3 OLCI Land Reduced Resolution (NRT)",
+  "description": "This collection provides Sentinel-3 OLCI Level-2 Land Reduced Resolution products containing data on global vegetation, chlorophyll, and water vapor.",
+  "keywords": [
+   "1200m",
+   "Biomass",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "Land",
+   "OLCI",
+   "OL_2_LRR____",
+   "PT3H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1200
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_2_LRR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.29",
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.41",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NR"
    ],
    "sat:platform_international_designator": [
     "2016-011A",
@@ -1551,6 +2177,159 @@
   },
   "sci:citation": "Copernicus Sentinel data [Year]"
  },
+ "sentinel-3-olci-2-wfr-nrt": {
+  "title": "Sentinel-3 OLCI Water Full Resolution (NRT)",
+  "description": "This collection provides Sentinel-3 OLCI Level-2 Water Full Resolution products containing data on water-leaving reflectance, ocean color, and more.",
+  "keywords": [
+   "300m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "EUMETSAT",
+   "Global",
+   "OLCI",
+   "OL_2_WFR____",
+   "Ocean",
+   "PT3H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3",
+   "Water"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://www.eumetsat.int/ocean-colour-services",
+    "name": "EUMETSAT",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_2_WFR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.45",
+    "03.47",
+    "03.50",
+    "03.51"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NR"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
  "sentinel-3-olci-2-wfr-ntc": {
   "title": "Sentinel-3 OLCI Water Full Resolution (NTC)",
   "description": "This collection provides Sentinel-3 OLCI Level-2 Water Full Resolution products containing data on water-leaving reflectance, ocean color, and more.",
@@ -1696,6 +2475,160 @@
    ],
    "product:timeliness_category": [
     "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-olci-2-wrr-nrt": {
+  "title": "Sentinel-3 OLCI Water Reduced Resolution (NRT)",
+  "description": "This collection provides Sentinel-3 OLCI Level-2 Water Reduced Resolution products containing data on water-leaving reflectance, ocean color, and more.",
+  "keywords": [
+   "1200m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "EUMETSAT",
+   "Global",
+   "OLCI",
+   "OL_2_WRR____",
+   "Ocean",
+   "PT3H",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3",
+   "Water"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://www.eumetsat.int/ocean-colour-services",
+    "name": "EUMETSAT",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1200
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "invalid": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "cosmetic": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saturated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "duplicated": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "dubious_samples": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "olci"
+   ],
+   "product:type": [
+    "OL_2_WRR___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "06.13",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.45",
+    "03.47",
+    "03.50",
+    "03.51"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NR"
    ],
    "sat:platform_international_designator": [
     "2016-011A",
@@ -1850,6 +2783,204 @@
    ],
    "product:timeliness_category": [
     "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sl-1-rbt-nrt": {
+  "title": "Sentinel-3 SLSTR Radiance and Brightness Temperature (NRT)",
+  "description": "The Copernicus Sentinel-3 SLSTR RBT products provide global brightness temperatures and radiances with a spatial resolution of 500 meters for reflectance bands and 1 kilometer for thermal infrared bands, useful for environmental monitoring and climate studies.",
+  "keywords": [
+   "1000m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "PT3H",
+   "Radiance",
+   "SLSTR",
+   "SL_1_RBT____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3",
+   "Temperature"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "bands": [
+    {
+     "name": "S1",
+     "description": "Band 1 - Cloud screening, vegetation monitoring, aerosol",
+     "eo:center_wavelength": 0.55427,
+     "eo:full_width_half_max": 0.01926
+    },
+    {
+     "name": "S2",
+     "description": "Band 2 - NDVI, vegetation monitoring, aerosol",
+     "eo:center_wavelength": 0.65947,
+     "eo:full_width_half_max": 0.01925
+    },
+    {
+     "description": "Band 3 - NDVI, cloud flagging, pixel co-registration",
+     "alternate:name": "S3",
+     "eo:center_wavelength": 0.868,
+     "eo:full_width_half_max": 0.0206
+    },
+    {
+     "name": "S4",
+     "description": "Band 4 - Cirrus detection over land",
+     "eo:center_wavelength": 1.3748,
+     "eo:full_width_half_max": 0.0208
+    },
+    {
+     "name": "S5",
+     "description": "Band 5 - Cloud clearing, ice, snow, vegetation monitoring",
+     "eo:center_wavelength": 1.6134,
+     "eo:full_width_half_max": 0.06068
+    },
+    {
+     "name": "S6",
+     "description": "Band 6 - Vegetation state and cloud clearing",
+     "eo:center_wavelength": 2.2557,
+     "eo:full_width_half_max": 0.05015
+    },
+    {
+     "name": "S7",
+     "description": "Band 7 - SST, LST, Active fire",
+     "eo:center_wavelength": 3.742,
+     "eo:full_width_half_max": 0.398
+    },
+    {
+     "name": "S8",
+     "description": "Band 8 - SST, LST, Active fire",
+     "eo:center_wavelength": 10.854,
+     "eo:full_width_half_max": 0.776
+    },
+    {
+     "name": "S9",
+     "description": "Band 9 - SST, LST",
+     "eo:center_wavelength": 12.0225,
+     "eo:full_width_half_max": 0.905
+    },
+    {
+     "name": "F1",
+     "description": "Band 10 - Active fire",
+     "eo:center_wavelength": 3.742,
+     "eo:full_width_half_max": 0.398
+    },
+    {
+     "name": "F2",
+     "description": "Band 11 - Active fire",
+     "eo:center_wavelength": 10.854,
+     "eo:full_width_half_max": 0.776
+    }
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "slstr"
+   ],
+   "product:type": [
+    "SL_1_RBT___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "03.24",
+    "03.25",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.47",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NR"
    ],
    "sat:platform_international_designator": [
     "2016-011A",
@@ -2161,6 +3292,134 @@
   },
   "sci:citation": "Copernicus Sentinel data [Year]"
  },
+ "sentinel-3-sl-2-frp-nrt": {
+  "title": "Sentinel-3 SLSTR Fire Radiative Power (NRT)",
+  "description": "This Collection provides Sentinel-3 SLSTR Level-2 Fire Radiative Power (FRP) products containing data on fires detected over land and ocean.",
+  "keywords": [
+   "1000m",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "EUMETSAT",
+   "Fire",
+   "PT3H",
+   "SLSTR",
+   "SL_2_FRP____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3",
+   "Temperature"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://www.eumetsat.int/",
+    "name": "EUMETSAT",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "slstr"
+   ],
+   "product:type": [
+    "SL_2_FRP___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.40",
+    "03.43",
+    "03.00",
+    "03.44",
+    "03.45",
+    "03.01",
+    "03.48",
+    "03.49",
+    "03.50",
+    "04.00"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NR"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
  "sentinel-3-sl-2-frp-ntc": {
   "title": "Sentinel-3 SLSTR Fire Radiative Power (NTC)",
   "description": "This Collection provides Sentinel-3 SLSTR Level-2 Fire Radiative Power (FRP) products containing data on fires detected over land and ocean.",
@@ -2281,6 +3540,137 @@
    ],
    "product:timeliness_category": [
     "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sl-2-lst-nrt": {
+  "title": "Sentinel-3 SLSTR Land Surface Temperature (NRT)",
+  "description": "This Collection provides Sentinel-3 SLSTR Level-2 Land Surface Temperature products containing data on land surface temperature measurements on a 1km grid. Radiance is measured in two channels to determine the temperature of the Earth's surface skin in the instrument field of view, where the term \"skin\" refers to the top surface of bare soil or the effective emitting temperature of vegetation canopies as viewed from above.",
+  "keywords": [
+   "1000m",
+   "Aerosol",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "Global",
+   "PT3H",
+   "SLSTR",
+   "SL_2_LST____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinel.esa.int/web/sentinel/missions/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "slstr"
+   ],
+   "product:type": [
+    "SL_2_LST___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.29",
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.40",
+    "03.43",
+    "03.44",
+    "03.45",
+    "03.47",
+    "03.48",
+    "03.49",
+    "03.50"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NR"
    ],
    "sat:platform_international_designator": [
     "2016-011A",
@@ -2420,6 +3810,133 @@
   },
   "sci:citation": "Copernicus Sentinel data [Year]"
  },
+ "sentinel-3-sl-2-wst-nrt": {
+  "title": "Sentinel-3 SLSTR Water Surface Temperature (NRT)",
+  "description": "This Collection provides Sentinel-3 SLSTR Level-2 Water Surface Temperature products containing data on sea surface temperature measurements on a 1km grid.",
+  "keywords": [
+   "1000m",
+   "Aerosol",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "EUMETSAT",
+   "Global",
+   "PT3H",
+   "SLSTR",
+   "SL_2_WST____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://www.eumetsat.int/sea-surface-temperature-services",
+    "name": "EUMETSAT",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1000
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "coastal": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "saline_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "tidal_region": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "fresh_inland_water": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "slstr"
+   ],
+   "product:type": [
+    "SL_2_WST___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "03.30",
+    "03.32",
+    "03.34",
+    "03.35",
+    "03.37",
+    "03.38",
+    "03.39",
+    "03.43",
+    "03.45",
+    "03.47",
+    "03.50",
+    "03.51"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "product:timeliness_category": [
+    "NR"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
  "sentinel-3-sl-2-wst-ntc": {
   "title": "Sentinel-3 SLSTR Water Surface Temperature (NTC)",
   "description": "This Collection provides Sentinel-3 SLSTR Level-2 Water Surface Temperature products containing data on sea surface temperature measurements on a 1km grid.",
@@ -2539,6 +4056,126 @@
    ],
    "product:timeliness_category": [
     "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-1-sra-a-nrt": {
+  "title": "Sentinel-3 SRAL Radar Altimetry L-1A (NRT)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-1A products, which contains geo-located bursts of echoes with all calibrations applied.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_1_SRA_A_"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "06.11",
+    "06.12",
+    "06.13",
+    "06.14",
+    "06.16",
+    "06.17",
+    "06.18",
+    "06.19",
+    "06.20",
+    "07.06",
+    "07.07"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NR"
    ],
    "sat:platform_international_designator": [
     "2016-011A",
@@ -2667,6 +4304,126 @@
   },
   "sci:citation": "Copernicus Sentinel data [Year]"
  },
+ "sentinel-3-sr-1-sra-a-stc": {
+  "title": "Sentinel-3 SRAL Radar Altimetry L-1A (STC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-1A products, which contains geo-located bursts of echoes with all calibrations applied.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    300
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_1_SRA_A_"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L1"
+   ],
+   "processing:version": [
+    "06.11",
+    "06.12",
+    "06.13",
+    "06.14",
+    "06.16",
+    "06.17",
+    "06.18",
+    "06.19",
+    "06.20",
+    "07.06",
+    "07.07"
+   ],
+   "product:timeliness": [
+    "PT48H"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "ST"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
  "sentinel-3-sr-1-sra-ntc": {
   "title": "Sentinel-3 SRAL Radar Altimetry L-1B (NTC)",
   "description": "This Collection provides Sentinel-3 SRAL Level-1B products, which contains geo-located and fully calibrated multi-looked High Resolution power echoes.",
@@ -2777,6 +4534,119 @@
    ],
    "product:timeliness_category": [
     "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-2-lan-hy-nrt": {
+  "title": "Sentinel-3 SRAL Land Radar Altimetry - Hydrology (NRT)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry Hydrology products, which contains surface topography estimations of lakes and rivers.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "Land",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_LAN_HY"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "07.06",
+    "07.07",
+    "07.08"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NR"
    ],
    "sat:platform_international_designator": [
     "2016-011A",
@@ -2898,6 +4768,233 @@
   },
   "sci:citation": "Copernicus Sentinel data [Year]"
  },
+ "sentinel-3-sr-2-lan-hy-stc": {
+  "title": "Sentinel-3 SRAL Land Radar Altimetry - Hydrology (STC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry Hydrology products, which contains surface topography estimations of lakes and rivers.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "Land",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_LAN_HY"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "07.06",
+    "07.07",
+    "07.08"
+   ],
+   "product:timeliness": [
+    "PT48H"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "ST"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-2-lan-li-nrt": {
+  "title": "Sentinel-3 SRAL Land Radar Altimetry - Land Ice (NRT)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry Land Ice products, which contains surface topography estimations of the Greenland and Antarctic ice sheets.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "Land",
+   "Ice",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_LAN_LI"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "07.06",
+    "07.07",
+    "07.08"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NR"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
  "sentinel-3-sr-2-lan-li-ntc": {
   "title": "Sentinel-3 SRAL Land Radar Altimetry - Land Ice (NTC)",
   "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry Land Ice products, which contains surface topography estimations of the Greenland and Antarctic ice sheets.",
@@ -3004,6 +5101,120 @@
    ],
    "product:timeliness_category": [
     "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-2-lan-li-stc": {
+  "title": "Sentinel-3 SRAL Land Radar Altimetry - Land Ice (STC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry Land Ice products, which contains surface topography estimations of the Greenland and Antarctic ice sheets.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "Land",
+   "Ice",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_LAN_LI"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "07.06",
+    "07.07",
+    "07.08"
+   ],
+   "product:timeliness": [
+    "PT48H"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "ST"
    ],
    "sat:platform_international_designator": [
     "2016-011A",
@@ -3130,6 +5341,120 @@
   },
   "sci:citation": "Copernicus Sentinel data [Year]"
  },
+ "sentinel-3-sr-2-lan-si-nrt": {
+  "title": "Sentinel-3 SRAL Land Radar Altimetry - Sea Ice (NRT)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry Sea Ice products, which contains estimations of the radar freeboard over the Arctic and Antarctic sea ice.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "Land",
+   "Ice",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_LAN_SI"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "07.06",
+    "07.07",
+    "07.08"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NR"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
  "sentinel-3-sr-2-lan-si-ntc": {
   "title": "Sentinel-3 SRAL Land Radar Altimetry - Sea Ice (NTC)",
   "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry Sea Ice products, which contains estimations of the radar freeboard over the Arctic and Antarctic sea ice.",
@@ -3236,6 +5561,250 @@
    ],
    "product:timeliness_category": [
     "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-2-lan-si-stc": {
+  "title": "Sentinel-3 SRAL Land Radar Altimetry - Sea Ice (STC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Land Altimetry Sea Ice products, which contains estimations of the radar freeboard over the Arctic and Antarctic sea ice.",
+  "keywords": [
+   "Sentinel",
+   "Copernicus",
+   "ESA",
+   "Satellite",
+   "Radar",
+   "Altimetry",
+   "Land",
+   "Ice",
+   "EU",
+   "EC"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://sentinels.copernicus.eu/web/sentinel/copernicus/sentinel-3",
+    "name": "ESA",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host",
+     "processor"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_LAN_SI"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "07.06",
+    "07.07",
+    "07.08"
+   ],
+   "product:timeliness": [
+    "PT48H"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "ST"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-2-wat-nrt": {
+  "title": "Sentinel-3 SRAL Ocean Radar Altimetry (NRT)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Ocean Altimetry products, which contain data on ocean radar altimetry measurements.",
+  "keywords": [
+   "1640m",
+   "Altimetry",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "EUMETSAT",
+   "Ocean",
+   "PT3H",
+   "Radar",
+   "SRAL",
+   "SR_2_WAT____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://www.eumetsat.int/",
+    "name": "EUMETSAT",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_WAT___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "06.05",
+    "06.06",
+    "06.07",
+    "06.10",
+    "06.12",
+    "06.14",
+    "06.15",
+    "06.18",
+    "06.50",
+    "06.52",
+    "07.01",
+    "07.02",
+    "07.03",
+    "07.04",
+    "07.05"
+   ],
+   "product:timeliness": [
+    "PT3H"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "NR"
    ],
    "sat:platform_international_designator": [
     "2016-011A",
@@ -3366,6 +5935,136 @@
    ],
    "product:timeliness_category": [
     "NT"
+   ],
+   "sat:platform_international_designator": [
+    "2016-011A",
+    "2018-039A"
+   ]
+  },
+  "sci:citation": "Copernicus Sentinel data [Year]"
+ },
+ "sentinel-3-sr-2-wat-stc": {
+  "title": "Sentinel-3 SRAL Ocean Radar Altimetry (STC)",
+  "description": "This Collection provides Sentinel-3 SRAL Level-2 Ocean Altimetry products, which contain data on ocean radar altimetry measurements.",
+  "keywords": [
+   "1640m",
+   "Altimetry",
+   "Copernicus",
+   "EC",
+   "ESA",
+   "EU",
+   "EUMETSAT",
+   "Ocean",
+   "PT48H",
+   "Radar",
+   "SRAL",
+   "SR_2_WAT____",
+   "Satellite",
+   "Sentinel",
+   "Sentinel-3"
+  ],
+  "license": "other",
+  "providers": [
+   {
+    "url": "https://www.eumetsat.int/",
+    "name": "EUMETSAT",
+    "roles": [
+     "producer"
+    ]
+   },
+   {
+    "url": "https://commission.europa.eu/",
+    "name": "European Commission",
+    "roles": [
+     "licensor"
+    ]
+   },
+   {
+    "url": "https://cloudferro.com/",
+    "name": "CloudFerro",
+    "roles": [
+     "host"
+    ]
+   }
+  ],
+  "summaries": {
+   "gsd": [
+    1640
+   ],
+   "platform": [
+    "sentinel-3a",
+    "sentinel-3b"
+   ],
+   "proj:code": [
+    null
+   ],
+   "statistics": {
+    "type": "object",
+    "properties": {
+     "land": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "closed_sea": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "open_ocean": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     },
+     "continental_ice": {
+      "type": "number",
+      "maximum": 100,
+      "minimum": 0
+     }
+    }
+   },
+   "instruments": [
+    "sral"
+   ],
+   "product:type": [
+    "SR_2_WAT___"
+   ],
+   "constellation": [
+    "sentinel-3"
+   ],
+   "sat:orbit_state": [
+    "ascending",
+    "descending"
+   ],
+   "processing:level": [
+    "L2"
+   ],
+   "processing:version": [
+    "06.05",
+    "06.06",
+    "06.07",
+    "06.10",
+    "06.12",
+    "06.14",
+    "06.15",
+    "06.18",
+    "06.50",
+    "06.52",
+    "07.01",
+    "07.02",
+    "07.03",
+    "07.04",
+    "07.05"
+   ],
+   "product:timeliness": [
+    "PT48H"
+   ],
+   "altm:instrument_mode": [
+    "lrm",
+    "sar"
+   ],
+   "product:timeliness_category": [
+    "ST"
    ],
    "sat:platform_international_designator": [
     "2016-011A",
