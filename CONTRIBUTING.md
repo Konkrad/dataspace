@@ -393,8 +393,12 @@ custom domain):
   (`stac_api.read_fresh`): after an update the edge still has the old version
   of a rewritten month for up to a day, while HEAD requests already see the
   new size, so reading through the cache fails with HTTP 416 or mixes
-  versions. Readers without the header can see that too until the copy
-  expires; purging the changed URLs after an upload would fix it for them.
+  versions.
+- **Cache purge after uploads:** `cdsemeta-merge` and `cdsemeta-index` clear
+  the URLs they uploaded from the cache (`cfcache.py`, 30 per request), so
+  readers get a rewritten file right away. They need the repository secrets
+  `CLOUDFLARE_API_TOKEN` (a token with only Zone → Cache Purge → Purge on
+  konrad.online) and `CLOUDFLARE_ZONE_ID`; without them they warn and skip it.
 - **Read-only:** the custom rule "dataspace: read-only (GET/HEAD/OPTIONS)"
   blocks every other method. `OPTIONS` is the browsers' CORS pre-check.
 

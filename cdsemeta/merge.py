@@ -20,7 +20,7 @@ from pathlib import Path
 import duckdb
 import pyarrow.parquet as pq
 
-from . import __version__, r2, stac
+from . import __version__, cfcache, r2, stac
 from .config import Config
 from .naming import find_day_file, latest_per_day, parse_tag, relpath_for_tag
 from .registry import Registry
@@ -237,6 +237,7 @@ def main(argv: list[str] | None = None) -> int:
         month_tags = by_month[month]
         log.info("pulling %d files for %s", len(month_tags), label)
         files = pull_all(registry, month_tags, args.cache)
+        uploaded: list[str] = []
         try:
             for collection, out in todo.items():
                 log.info("merging %s %s (%d files)", collection, label, len(files))
@@ -266,10 +267,13 @@ def main(argv: list[str] | None = None) -> int:
                     log.info("pushed %s:%s-%s", cfg.oci_repo, collection, label)
                 if args.upload_r2:
                     r2.upload(out, key)
+                    uploaded.append(key)
                     if args.delete_after_upload:
                         out.unlink()
                         log.info("deleted %s after upload", out)
         finally:
+            # Clear the edge's old copies right away (also of a month that failed halfway).
+            cfcache.purge(uploaded)
             if not args.keep_cache:
                 for f in files:
                     f.unlink(missing_ok=True)

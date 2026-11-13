@@ -36,7 +36,7 @@ from pathlib import Path
 
 import duckdb
 
-from . import r2, stac_api
+from . import cfcache, r2, stac_api
 
 log = logging.getLogger("cdsemeta.index")
 
@@ -428,6 +428,11 @@ def main(argv: list[str] | None = None) -> int:
         # Assets, folder pages and lists first, the root page last: it refers to all of them.
         for path, key, ctype, cache in sorted(items, key=lambda i: i[1] == "index.html"):
             r2.upload(path, key, content_type=ctype, cache_control=cache)
+        # The cache rule keeps everything a day, whatever Cache-Control says.
+        # Pages are cached under their folder URL too (/, /about/), via the index rewrite rule.
+        keys = [key for _, key, _, _ in items]
+        keys += [k.removesuffix("index.html") for k in keys if k == "index.html" or k.endswith("/index.html")]
+        cfcache.purge(keys, args.base_url)
     log.info("wrote %d files to %s%s", len(items), args.out_dir, " and uploaded them" if args.upload_r2 else "")
     return 0
 
