@@ -35,23 +35,6 @@ CDSE_COLLECTIONS = Path(__file__).with_name("cdse_collections.json")
 KEEP = ("title", "description", "keywords", "license", "providers", "summaries", "sci:citation")
 
 
-# Requests with this header skip Cloudflare's cache (a cache rule on the zone,
-# see CONTRIBUTING.md): a month rewritten minutes ago is still the old version
-# there for up to a day, and reading it mixes versions (HTTP 416, bad bytes).
-FRESH_HEADER = "x-dataspace-fresh"
-
-
-def read_fresh(con: duckdb.DuckDBPyConnection, base: str) -> None:
-    """Send ``FRESH_HEADER`` on this connection's requests under ``base`` (a
-    temporary secret: it isn't saved in a database file)."""
-    if not base.startswith(("http://", "https://")):
-        return
-    con.execute("INSTALL httpfs; LOAD httpfs")
-    scope = "'" + base.rstrip("/").replace("'", "''") + "'"
-    con.execute(f"CREATE TEMPORARY SECRET fresh (TYPE http, SCOPE {scope}, "
-                f"EXTRA_HTTP_HEADERS MAP {{'{FRESH_HEADER}': '1'}})")
-
-
 def connect_reader() -> tuple[duckdb.DuckDBPyConnection, str | None]:
     """A DuckDB connection and the s3:// prefix of the bucket, if R2 credentials are set."""
     con = duckdb.connect()
@@ -74,7 +57,6 @@ def scan(keys: list[str], public_base: str) -> list[tuple]:
     """(folder, month, collection, items, first datetime, last datetime) for every file key."""
     con, s3 = connect_reader()
     base = s3 or public_base.rstrip("/")
-    read_fresh(con, base)
     out = []
     def query(batch: list[str]) -> list[tuple]:
         files = ", ".join("'" + f"{base}/{k}".replace("'", "''") + "'" for k in batch)

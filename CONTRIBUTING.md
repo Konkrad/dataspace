@@ -386,17 +386,11 @@ custom domain):
   only caches files up to 512 MB; a larger file would be read from R2 on
   every request, so split a collection's months before they reach that
   (Sentinel-2 L1C/L2A are at about 470 MB).
-- **Cache bypass for CI:** the cache rule "dataspace: bypass cache with
-  x-dataspace-fresh (CI reads)", placed *after* "cache everything" (a later
-  matching cache rule overrides an earlier one), turns the cache off for
-  requests with `x-dataspace-fresh: 1`. `cdsemeta-index` sends it
-  (`stac_api.read_fresh`): after an update the edge still has the old version
-  of a rewritten month for up to a day, while HEAD requests already see the
-  new size, so reading through the cache fails with HTTP 416 or mixes
-  versions.
 - **Cache purge after uploads:** `cdsemeta-merge` and `cdsemeta-index` clear
-  the URLs they uploaded from the cache (`cfcache.py`, 30 per request), so
-  readers get a rewritten file right away. They need the repository secrets
+  the URLs they uploaded from the cache (`cfcache.py`, 30 per request). The
+  cache rule keeps a file a day whatever its `Cache-Control`; without a purge
+  a rewritten month stays the old version at the edge while HEAD requests
+  already see the new size, and readers get HTTP 416 or mixed versions. They need the repository secrets
   `CLOUDFLARE_API_TOKEN` (a token with only Zone → Cache Purge → Purge on
   konrad.online) and `CLOUDFLARE_ZONE_ID`; without them they warn and skip it.
 - **Read-only:** the custom rule "dataspace: read-only (GET/HEAD/OPTIONS)"
