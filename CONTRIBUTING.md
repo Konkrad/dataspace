@@ -386,6 +386,15 @@ custom domain):
   only caches files up to 512 MB; a larger file would be read from R2 on
   every request, so split a collection's months before they reach that
   (Sentinel-2 L1C/L2A are at about 470 MB).
+- **Cache bypass for CI:** the cache rule "dataspace: bypass cache with
+  x-dataspace-fresh (CI reads)", placed *after* "cache everything" (a later
+  matching cache rule overrides an earlier one), turns the cache off for
+  requests with `x-dataspace-fresh: 1`. `cdsemeta-index` sends it
+  (`stac_api.read_fresh`): after an update the edge still has the old version
+  of a rewritten month for up to a day, while HEAD requests already see the
+  new size, so reading through the cache fails with HTTP 416 or mixes
+  versions. Readers without the header can see that too until the copy
+  expires; purging the changed URLs after an upload would fix it for them.
 - **Read-only:** the custom rule "dataspace: read-only (GET/HEAD/OPTIONS)"
   blocks every other method. `OPTIONS` is the browsers' CORS pre-check.
 

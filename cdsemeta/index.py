@@ -139,6 +139,7 @@ def build_duckdb(datasets: list[Dataset], base: str, out: Path) -> None:
     out.unlink(missing_ok=True)
     con = duckdb.connect(str(out))
     try:
+        stac_api.read_fresh(con, base)
         # Few parallel requests and patient retries: the public domain may rate-limit (429).
         con.execute("SET threads = 4; SET http_retries = 8; SET http_retry_wait_ms = 1000; SET http_retry_backoff = 2")
         con.execute("""CREATE TABLE datasets (name VARCHAR, mission VARCHAR, collection VARCHAR,
