@@ -14,7 +14,8 @@ dependencies = [
     "pyarrow>=15",
     "shapely>=2.0",
     "numpy>=1.26",
-    "duckdb>=1.3,<2",  # 2.0 drops relation.fetchone() and the -> lambda
+    # >=1.5: GeoParquet 2.0 (GEOPARQUET_VERSION 'V2'); 2.0 drops relation.fetchone() and the -> lambda
+    "duckdb>=1.5,<2",
     "boto3>=1.34",
 ]
 

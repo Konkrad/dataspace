@@ -5,9 +5,9 @@ The product metadata of every Sentinel-1, -2, -3 and -5P product in the
 [STAC GeoParquet](https://github.com/radiantearth/stac-geoparquet-spec) with
 the item ids, collection ids and property names of CDSE's own
 [STAC API](https://stac.dataspace.copernicus.eu/v1/): footprints, sensing
-times, orbits, product types, S3 paths, checksums, and the raw OData record of
-every product. One file per collection and sensing month, updated daily,
-public, no account needed.
+times, orbits, product types, S3 paths and checksums of every product. One
+file per collection and sensing month, updated daily, public, no account
+needed.
 
 **https://dataspace.konrad.online**: a map of every collection and month,
 the list of files, and how to use them.
@@ -57,10 +57,11 @@ https://dataspace.konrad.online/sentinel-2-l2a.parquet/2024-05.parquet
 ```
 
 The month is the sensing month (`datetime`, UTC). Each file is
-[GeoParquet](https://geoparquet.org/) 1.1 with a `bbox` covering column,
-written in the [Cloud-Optimized GeoParquet](https://github.com/Kanahiro/cloud-optimized-geoparquet)
-layout, so map viewers can load it progressively; to any other reader it is
-ordinary GeoParquet.
+[GeoParquet](https://geoparquet.org/) 2.0: `geometry` is stored in Parquet's
+native `GEOMETRY` type, whose statistics give every row group a bounding box.
+The STAC `bbox` column is there as well, so readers that predate the native
+type can still filter spatially on it. Older readers (e.g. DuckDB before 1.5)
+see `geometry` as plain WKB.
 
 Next to the data:
 
@@ -255,7 +256,7 @@ are noted below.
 | `processing:level`, `processing:datetime`, `processing:facility`, `processing:version`, `processing:software` | `L1`, ...; `processing:software` is `{processor: version}` |
 | `eopf:*` | `eopf:origin_datetime`; Sentinel-1 `eopf:datatake_id`, `eopf:instrument_configuration_id`; Sentinel-2 `eopf:datatake_id`, `eopf:datastrip_id`, `eopf:instrument_mode` |
 | `assets` | `product`: the product in CDSE's `s3://eodata/...`, with `file:size`; `thumbnail`: the quicklook |
-| `cdse:*` | what STAC has no place for: `cdse:id` (OData product id), `cdse:online`, `cdse:odata_found`, `cdse:ingestion_date`, `cdse:checksum_md5`, `cdse:checksum_blake3`, and the raw OData record as JSON: `cdse:attributes`, `cdse:assets`, `cdse:locations` |
+| `cdse:*` | what STAC has no place for: `cdse:id` (OData product id), `cdse:online`, `cdse:odata_found`, `cdse:ingestion_date`, `cdse:checksum_md5`, `cdse:checksum_blake3` |
 
 Not included: properties CDSE reads from the product files rather than
 OData (`view:*`, `sar:pixel_spacing_*`, `sar:resolution_*`, `eo:snow_cover`,

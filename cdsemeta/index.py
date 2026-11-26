@@ -45,14 +45,12 @@ DB_NAME = "dataspace.duckdb"
 KEY_RE = re.compile(r"^(?P<ds>[^/]+)\.parquet/(?P<month>\d{4}-\d{2})\.parquet$")
 # Short cache for the generated files, so a new month shows up soon after the run.
 INDEX_CACHE = "public, max-age=300"
-# The viewer's files have content hashes in their names.
+# The STAC Browser's assets/ have content hashes in their names.
 ASSET_CACHE = "public, max-age=31536000, immutable"
-VIEWER_PREFIX = "_viewer/"
 ABOUT = "about/index.html"
 COLLECTIONS_JSON = "collections.json"
 # Files of the STAC Browser build that aren't needed on the bucket.
 BROWSER_SKIP = (".map", ".htaccess", "mitm.html", "mockServiceWorker.js")
-VIEWER_ENTRY = "src/main.js"
 
 
 @dataclass
@@ -185,34 +183,7 @@ def _page(title: str, body: str) -> str:
             f"<title>{html.escape(title)}</title>\n<style>{_STYLE}</style>\n</head>\n<body>\n{body}\n</body>\n</html>\n")
 
 
-def viewer_html(datasets: list[Dataset], base: str, entry: dict) -> str:
-    """The map: controls, the map element, the collection list and the bundle (viewer/)."""
-    e = html.escape
-    data = json.dumps({"base": base.rstrip("/"),
-                       "datasets": [{"id": d.id, "months": [f.month for f in d.files]} for d in datasets]})
-    data = data.replace("</", "<\\/")  # can't end the <script> early
-    css = "".join(f'<link rel="stylesheet" href="/{VIEWER_PREFIX}{e(c)}">' for c in entry.get("css", []))
-    return f"""{css}
-<section class="viewer">
-<div class="controls">
-  <label>Collection <select id="collection"></select></label>
-  <label>Month
-    <button id="prev" title="Previous month" aria-label="Previous month">‹</button>
-    <input id="month" type="month">
-    <button id="next" title="Next month" aria-label="Next month">›</button>
-  </label>
-  <a id="file">parquet file</a>
-  <span id="status"></span>
-</div>
-<div id="map"></div>
-<p class="muted">Footprints of one collection and sensing month; click one for its products. Zoomed out, only a
-thinned-out overview of the file is loaded.</p>
-</section>
-<script id="datasets" type="application/json">{data}</script>
-<script type="module" src="/{VIEWER_PREFIX}{e(entry["file"])}"></script>"""
-
-
-def root_html(datasets: list[Dataset], base: str, generated: datetime, viewer_entry: dict | None = None) -> str:
+def root_html(datasets: list[Dataset], base: str, generated: datetime) -> str:
     e = html.escape
     base = base.rstrip("/")
     rows = "\n".join(
@@ -233,7 +204,6 @@ as GeoParquet, one file per collection and sensing month. Updated daily.
 {nfiles} files, {human(total)}. Generated {generated:%Y-%m-%d %H:%M} UTC.
 Columns, collections and more examples: <a href="https://github.com/Konkrad/dataspace#readme">documentation</a>.</p>
 <p><a href="/">Search and browse the catalogue</a> (STAC Browser, in your browser).</p>
-{viewer_html(datasets, base, viewer_entry) if viewer_entry else ""}
 
 <h2>Collections</h2>
 <div class="scroll"><table>
@@ -311,22 +281,6 @@ def content_type(path: Path) -> str:
     return f"{ctype}; charset=utf-8" if ctype.startswith("text/") or ctype == "application/json" else ctype
 
 
-def copy_viewer(viewer_dist: Path, out_dir: Path) -> tuple[dict, list[tuple[Path, str, str, str]]]:
-    """Copy the built viewer (viewer/dist) to out_dir/_viewer/; return its entry and the files."""
-    manifest = json.loads((viewer_dist / ".vite" / "manifest.json").read_text())
-    entry = manifest[VIEWER_ENTRY]
-    items = []
-    for src in sorted(viewer_dist.rglob("*")):
-        rel = src.relative_to(viewer_dist)
-        if src.is_dir() or rel.parts[0] == ".vite":
-            continue
-        dst = out_dir / VIEWER_PREFIX / rel
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(src, dst)
-        items.append((dst, VIEWER_PREFIX + rel.as_posix(), content_type(src), ASSET_CACHE))
-    return entry, items
-
-
 def browser_index(page: str, datasets: list[Dataset]) -> str:
     """STAC Browser's index.html, plus a hidden list of links in <body> (STAC Browser replaces
     the body when it starts): rclone's http backend and `wget -r` mirror the bucket from it."""
@@ -356,7 +310,7 @@ def copy_browser(browser_dist: Path, out_dir: Path, datasets: list[Dataset]) -> 
 
 
 def write_all(datasets: list[Dataset], base: str, out_dir: Path, *, duckdb_file: bool = True,
-              viewer_dist: Path | None = None, browser_dist: Path | None = None,
+              browser_dist: Path | None = None,
               collections: dict | None = None) -> list[tuple[Path, str, str, str]]:
     """Write every index file under out_dir; return (path, key, content type, cache control) to upload."""
     now = datetime.now(timezone.utc)
@@ -369,16 +323,12 @@ def write_all(datasets: list[Dataset], base: str, out_dir: Path, *, duckdb_file:
         p.write_text(text, encoding="utf-8")
         items.append((p, key, ctype, INDEX_CACHE))
 
-    entry = None
-    if viewer_dist:
-        entry, assets = copy_viewer(viewer_dist, out_dir)
-        items.extend(assets)
     if browser_dist:
         # STAC Browser at the root; the files and how to use them under /about/
         items.extend(copy_browser(browser_dist, out_dir, datasets))
-        put(ABOUT, root_html(datasets, base, now, None), "text/html; charset=utf-8")
+        put(ABOUT, root_html(datasets, base, now), "text/html; charset=utf-8")
     else:
-        put("index.html", root_html(datasets, base, now, entry), "text/html; charset=utf-8")
+        put("index.html", root_html(datasets, base, now), "text/html; charset=utf-8")
     if collections is not None:
         put(COLLECTIONS_JSON, json.dumps(collections, ensure_ascii=False), "application/json; charset=utf-8")
     for d in datasets:
@@ -398,8 +348,6 @@ def main(argv: list[str] | None = None) -> int:
                     help=f"public URL of the bucket (default: $PUBLIC_BASE_URL or {DEFAULT_BASE_URL})")
     ap.add_argument("--out-dir", type=Path, default=Path("index"), help="where the files are written")
     ap.add_argument("--no-duckdb", action="store_true", help=f"skip {DB_NAME} (it reads every file's schema)")
-    ap.add_argument("--viewer", type=Path, default=None, metavar="DIST",
-                    help="built map viewer (viewer/dist, `npm run build`) to put on the landing page")
     ap.add_argument("--browser", type=Path, default=None, metavar="DIST",
                     help="built STAC Browser (fork with src/local-api) to put at the root; the landing page "
                          "moves to /about/")
@@ -422,7 +370,7 @@ def main(argv: list[str] | None = None) -> int:
         collections = stac_api.collections_json([r for r in rows if r[2]], args.base_url, cdse)
         log.info("%d STAC collections", len(collections["collections"]))
     items = write_all(datasets, args.base_url, args.out_dir, duckdb_file=not args.no_duckdb,
-                      viewer_dist=args.viewer, browser_dist=args.browser, collections=collections)
+                      browser_dist=args.browser, collections=collections)
     if args.upload_r2:
         # Assets, folder pages and lists first, the root page last: it refers to all of them.
         for path, key, ctype, cache in sorted(items, key=lambda i: i[1] == "index.html"):

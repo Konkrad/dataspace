@@ -67,8 +67,8 @@ expect it to take proportionally longer.
 ## Output columns
 
 The columns are described in [README.md](README.md#columns). Rows are sorted
-by `content_start` in the per-day files; the monthly files are reordered by
-COGP (see [Monthly files](#monthly-files)).
+by `content_start` in the per-day files and, as they are concatenated in day
+order, in the monthly files too (see [Monthly files](#monthly-files)).
 
 **Products not found in OData.** About 1–4% of the CSV rows were not returned
 by OData, whether you look them up by Id or by Name. They are kept as rows
@@ -183,12 +183,9 @@ for Sentinel-1, `l1c`, `l2a` for Sentinel-2, `olci`, `slstr`, `sral`,
    some product types have are fine), leaving out names matching the
    mission's `EXCLUDE`. There is no explicit sort: the files arrive in
    (day, platform) order and each is already sorted by `content_start`.
-3. Writes GeoParquet metadata.
-4. Reorders it into a [COGP](https://github.com/Kanahiro/cloud-optimized-geoparquet)
-   layout with the `cogp` CLI (vendored in the image like `oras`), so viewers
-   can progressively load it. A COGP file is still ordinary GeoParquet, so
-   this is transparent to non-COGP-aware readers.
-5. With `--push`, pushes the file to the registry as `<collection>-<YYYY>-<MM>`;
+3. Maps the result to STAC GeoParquet (see [STAC GeoParquet](#stac-geoparquet)),
+   written as GeoParquet 2.0.
+4. With `--push`, pushes the file to the registry as `<collection>-<YYYY>-<MM>`;
    with `--upload-r2`, uploads it to Cloudflare R2 (`R2_ACCOUNT_ID`,
    `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`) under the same
    key.
@@ -289,9 +286,13 @@ MISSION=sentinel-1 cdsemeta-update sync --ids ids       # then sync reads and up
 
 The published monthly files are STAC GeoParquet with CDSE's own STAC item
 ids, collection ids and property names (`cdsemeta/stac.py`). The merge writes
-the raw OData columns first, then maps them in one DuckDB `SELECT` and runs
-`cogp convert` on the result (COGP's `geo.lod` describes row groups, so it
-has to be the last write).
+the raw OData columns first, then maps them in one DuckDB `SELECT`, written as
+GeoParquet 2.0 (`GEOPARQUET_VERSION 'V2'`, DuckDB 1.5+): `geometry` in
+Parquet's native `GEOMETRY` type, the `geo` metadata written by DuckDB, and
+the STAC `bbox` column kept for readers without the native type (and for the
+STAC Browser's spatial filter). The raw OData JSON (`attributes_json`,
+`assets_json`, `locations_json`) stays in the per-day artifacts but is not
+published: its values are in the STAC columns already.
 
 - `id` is the product name without its extension; `collection` is derived
   from `productType` plus `timeliness` (Sentinel-3: `NR`/`NT`/`ST` →
@@ -320,29 +321,16 @@ API and uploads, next to the monthly files:
 
 | File | For |
 |---|---|
-| `index.html` | the landing page: the map viewer, every collection, usage examples |
-| `_viewer/…` | the map viewer's bundle (content-hashed names) |
+| `index.html` | the landing page: every collection, usage examples |
 | `<mission>-<collection>.parquet/index.html` | the months of one collection; also lets `rclone`'s http backend and `wget -r` mirror without a key |
 | `files.txt` | one URL per line, for `wget -i` / `aria2c -i` |
 | `files.tsv` | URL, size, ETag, last-modified, for incremental mirroring |
 | `dataspace.duckdb` | a view per collection (`sentinel_1_grd`, ...) over the HTTPS URLs, plus the tables `datasets` and `files` |
 
 ```sh
-(cd viewer && npm ci && npm run build)       # the map viewer -> viewer/dist
-cdsemeta-index --out-dir index --viewer viewer/dist               # write locally (needs R2_* to list the bucket)
-cdsemeta-index --out-dir index --viewer viewer/dist --upload-r2   # and upload
+cdsemeta-index --out-dir index               # write locally (needs R2_* to list the bucket)
+cdsemeta-index --out-dir index --upload-r2   # and upload
 ```
-
-The map viewer (`viewer/`) is MapLibre with
-[`@cogp/maplibre`](https://github.com/Kanahiro/cloud-optimized-geoparquet/tree/main/js/packages/maplibre),
-which reads the COGP files in a worker and at low zoom only their coarse
-levels. It is bundled with Vite (the reader's worker can't load from a CDN:
-browsers don't run workers from another origin) under `/_viewer/`; the
-landing page finds the entry in the Vite manifest and embeds the list of
-collections and months, so the viewer needs no extra request. Basemap:
-[OpenFreeMap](https://openfreemap.org/). To try it locally, write the index
-with `--viewer`, serve the output folder (`python -m http.server`) and open
-it; the files come from the public URL (CORS).
 
 Building `dataspace.duckdb` reads every file's schema over the public URL
 (`--base-url`, default `$PUBLIC_BASE_URL` or `https://dataspace.konrad.online`;
@@ -366,7 +354,7 @@ custom domain):
 - **Cache rule** "dataspace: cache everything": should only match
   `ends_with(http.request.uri.path, ".parquet")`, so the pages, file lists and
   `dataspace.duckdb` keep their 5-minute `Cache-Control` and new data shows up
-  soon after a run (the viewer's files carry a one-year immutable one).
+  soon after a run (the STAC Browser's `assets/` carry a one-year immutable one).
 - **CORS** on the bucket, for browser apps (stac-map, shell.duckdb.org):
   `AllowedOrigins ["*"]`, methods `GET`, `HEAD`, header `range`, exposing
   `content-range`, `content-length`, `etag`, `accept-ranges`. The bucket is in

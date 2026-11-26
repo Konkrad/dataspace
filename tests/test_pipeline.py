@@ -156,9 +156,19 @@ def test_build_stac_table(tmp_path):
     src = pq.read_table(merged)
 
     out = tmp_path / "stac.parquet"
-    assert convert(merged, out, "sentinel-1-grd", cogp=False) == src.num_rows  # nothing dropped
+    assert convert(merged, out, "sentinel-1-grd") == src.num_rows  # nothing dropped
     meta = pq.ParquetFile(out).metadata.metadata
-    assert b"geo" in meta and json.loads(meta[b"stac-geoparquet"])["version"] == "1.1.0"
+    assert json.loads(meta[b"stac-geoparquet"])["version"] == "1.1.0"
+    # GeoParquet 2.0: one `geo` key, written by DuckDB, and geometry in Parquet's native type.
+    import duckdb
+    kv = duckdb.execute(f"SELECT decode(key), decode(value) FROM parquet_kv_metadata('{out}')").fetchall()
+    geo = [json.loads(v) for k, v in kv if k == "geo"]
+    assert len(geo) == 1 and geo[0]["version"] == "2.0.0" and geo[0]["primary_column"] == "geometry"
+    logical = duckdb.execute(f"SELECT logical_type FROM parquet_schema('{out}') WHERE name = 'geometry'").fetchone()[0]
+    assert logical.startswith("GeometryType")
+    names = pq.read_schema(out).names
+    assert "bbox" in names  # the STAC item bbox, also used by the STAC Browser's spatial filter
+    assert not {"cdse:attributes", "cdse:assets", "cdse:locations"} & set(names)
     gdf = gpd.read_parquet(out)
     assert not gdf["id"].str.endswith(".SAFE").any()
     assert set(gdf["type"]) == {"Feature"}

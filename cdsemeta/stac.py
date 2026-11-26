@@ -18,15 +18,20 @@ https://github.com/radiantearth/stac-geoparquet-spec:
   are left out.
 - An asset ``product`` (the product's ``s3://eodata/...`` path, size) and
   ``thumbnail`` (the quicklook), a ``via`` link to the OData product.
-- What STAC has no place for stays under ``cdse:`` (OData id, online, the raw
-  attribute/asset/location JSON), so nothing is lost.
+- What STAC has no place for stays under ``cdse:`` (OData id, online,
+  ingestion date, checksums). The raw OData attribute/asset/location JSON is
+  left out: its values are already in the STAC fields above (and the download
+  link is ``Products(<cdse:id>)/$value``); the per-day artifacts keep it.
 
 Checked value by value against CDSE STAC items of the same products (see
 tests/test_stac.py). Rows CDSE's OData didn't return (``cdse:odata_found =
 false``) are kept, with only what the catalogue CSV has.
 
-The result has to go through ``cogp convert`` again (``cdsemeta.cogp``):
-COGP's ``geo.lod`` metadata describes row groups, which change on rewrite.
+The result is GeoParquet 2.0: ``geometry`` in Parquet's native ``GEOMETRY``
+type, whose row group statistics carry a bounding box. DuckDB writes the
+``geo`` metadata itself (passing our own as well would give the file two
+``geo`` keys). The ``bbox`` column stays: it is the STAC item's bbox, and
+readers that don't know the native statistics can filter on it.
 """
 
 from __future__ import annotations
@@ -41,8 +46,7 @@ from pathlib import Path
 import duckdb
 import pyarrow.parquet as pq
 
-from . import __version__, r2
-from .cogp import convert_to_cogp
+from . import r2
 
 log = logging.getLogger("cdsemeta.stac")
 
@@ -109,9 +113,6 @@ sentinel-5p-l2-o3-pr-nrti sentinel-5p-l2-o3-pr-offl sentinel-5p-l2-o3-pr-rpro se
 sentinel-5p-l2-o3-tcl-nrti sentinel-5p-l2-o3-tcl-offl sentinel-5p-l2-o3-tcl-rpro sentinel-5p-l2-so2-nrti
 sentinel-5p-l2-so2-offl sentinel-5p-l2-so2-rpro
 """.split())
-
-# Columns of the merged files that become STAC fields or cdse:* and aren't copied as they are.
-RAW_ONLY = {"overviews"}  # COGP's, rebuilt by cogp convert
 
 
 def _q(s: str) -> str:
@@ -272,9 +273,6 @@ def select_sql(columns: set[str], mission: str, bucket_id: str) -> tuple[str, li
         f"{c('ingestion_date', 'TIMESTAMPTZ')} AS \"cdse:ingestion_date\"",
         f"{c('checksum_md5')} AS \"cdse:checksum_md5\"",
         f"{c('checksum_blake3')} AS \"cdse:checksum_blake3\"",
-        f"{c('attributes_json')} AS \"cdse:attributes\"",
-        f"{c('assets_json')} AS \"cdse:assets\"",
-        f"{c('locations_json')} AS \"cdse:locations\"",
     ]
     return ",\n  ".join(fields), list(MISSION_EXTENSIONS[mission])
 
@@ -289,7 +287,7 @@ def mission_of(bucket_id: str) -> str:
 
 
 def convert(src: str | Path, out: Path, bucket_id: str, *, memory_limit: str | None = None,
-            tmp_dir: Path | None = None, cogp: bool = True) -> int:
+            tmp_dir: Path | None = None) -> int:
     """Write the STAC GeoParquet of one merged file (a path or URL) to ``out``; return its rows."""
     mission = mission_of(bucket_id)
     con = duckdb.connect()
@@ -300,30 +298,23 @@ def convert(src: str | Path, out: Path, bucket_id: str, *, memory_limit: str | N
         spill = Path(tmp_dir) / f"duckdb-tmp-{os.getpid()}"
         con.execute(f"SET temp_directory = {_q(str(spill))}")
     src_sql = _q(str(src))
-    columns = {r[0] for r in con.execute(f"DESCRIBE SELECT * FROM read_parquet({src_sql})").fetchall()}
-    if "stac_version" in columns:
+    types = {r[0]: r[1] for r in con.execute(f"DESCRIBE SELECT * FROM read_parquet({src_sql})").fetchall()}
+    if "stac_version" in types:
         raise AlreadyStac(str(src))
-    geo_raw = con.execute(
-        f"SELECT value FROM parquet_kv_metadata({src_sql}) WHERE decode(key) = 'geo'").fetchone()
-    if geo_raw is None:
+    if not types.get("geometry", "").startswith("GEOMETRY"):  # DuckDB reads it as GEOMETRY only with `geo` metadata
         raise ValueError(f"{src}: no GeoParquet metadata")
-    geo = json.loads(bytes(geo_raw[0]).decode())
-    geo.pop("lod", None)  # COGP's, rebuilt by cogp convert
-    geo["creator"] = {"library": "cdsemeta", "version": __version__}
-    select, _ = select_sql(columns - RAW_ONLY, mission, bucket_id)
-    stac_meta = {"version": STAC_GEOPARQUET_VERSION}
-    kv = {"geo": json.dumps(geo), "stac-geoparquet": json.dumps(stac_meta)}
+    select, _ = select_sql(set(types), mission, bucket_id)
+    kv = {"stac-geoparquet": json.dumps({"version": STAC_GEOPARQUET_VERSION})}
     kv_sql = "{" + ", ".join(f"{_q(k)}: {_q(v)}" for k, v in kv.items()) + "}"
     out.parent.mkdir(parents=True, exist_ok=True)
     part = out.with_suffix(out.suffix + ".part")
     con.execute(f"""
         COPY (SELECT {select} FROM read_parquet({src_sql}))
-        TO {_q(str(part))} (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE 100000, KV_METADATA {kv_sql})
+        TO {_q(str(part))} (FORMAT parquet, GEOPARQUET_VERSION 'V2', COMPRESSION zstd, ROW_GROUP_SIZE 100000,
+                            KV_METADATA {kv_sql})
     """)
     con.close()
     part.replace(out)
-    if cogp:
-        convert_to_cogp(out)
     return pq.ParquetFile(out).metadata.num_rows
 
 

@@ -248,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
                     out.unlink(missing_ok=True)
                     log.info("%s %s: no rows, skipping", collection, label)
                     continue
-                # STAC GeoParquet with CDSE's property names, then COGP layout.
+                # STAC GeoParquet (GeoParquet 2.0) with CDSE's property names.
                 log.info("writing STAC %s (%d rows)", out, rows)
                 stac.convert(raw, out, f"{cfg.mission}-{collection}", memory_limit=args.memory_limit,
                              tmp_dir=args.cache)
